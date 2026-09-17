@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UCM Care Coordination — Design System</title>
+  <style>
+    /* ─────────────────────────────────────────
+       DESIGN TOKENS
+    ───────────────────────────────────────── */
+    :root {
+      /* Brand Colors */
+      --ucm-maroon:        #820B25;
+      --ucm-maroon-dark:   #5C0819;
+      --ucm-maroon-mid:    #A50E2D;
+      --ucm-maroon-tint:   #F5E8EB;
+
+      /* Neutral Scale */
+      --gray-900: #1A1A1A;
+      --gray-700: #3D3D3D;
+      --gray-500: #717171;
+      --gray-300: #C4C4C4;
+      --gray-100: #F2F2F2;
+      --white:    #FFFFFF;
+
+      /* Risk Status Colors */
+      --risk-high-bg:    #FDECEA;
+      --risk-high-text:  #B71C1C;
+      --risk-high-dot:   #D32F2F;
+
+      --risk-medium-bg:   #FFF8E1;
+      --risk-medium-text: #7B5100;
+      --risk-medium-dot:  #F59E0B;
+
+      --risk-low-bg:   #E8F5E9;
+      --risk-low-text: #1B5E20;
+      --risk-low-dot:  #388E3C;
+
+      /* UI Feedback */
+      --info:    #1565C0;
+      --success: #2E7D32;
+      --warning: #E65100;
+      --error:   #C62828;
+
+      /* Elevation / Borders */
+      --border:       #E0E0E0;
+      --border-focus: #820B25;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.10);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.12);
+
+      /* Spacing (4px base) */
+      --space-1:  4px;
+      --space-2:  8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-10: 40px;
+      --space-12: 48px;
+
+      /* Radius */
+      --radius-sm:  4px;
+      --radius-md:  8px;
+      --radius-lg: 12px;
+      --radius-pill: 100px;
+
+      /* Typography */
+      --font-sans: 'Gotham', 'Inter', system-ui, -apple-system, sans-serif;
+      --font-serif: 'Adobe Garamond Pro', 'Garamond', Georgia, serif;
+    }
+
+    /* ─────────────────────────────────────────
+       DESIGN SYSTEM PAGE CHROME
+    ───────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.6;
+      background: var(--gray-100);
+      color: var(--gray-900);
+    }
+
+    .ds-header {
+      background: var(--ucm-maroon);
+      color: var(--white);
+      padding: var(--space-6) var(--space-8);
+      display: flex;
+      align-items: center;
+      gap: var(--space-5);
+    }
+    .ds-header__logo {
+      height: 120px;
+      width: auto;
+      flex-shrink: 0;
+      filter: brightness(0) invert(1);
+    }
+    .ds-header__divider {
+      width: 1px;
+      height: 90px;
+      background: rgba(255,255,255,0.3);
+    }
+    .ds-header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+    .ds-header p  { font-size: 13px; opacity: 0.75; margin-top: 2px; }
+
+    .ds-nav {
+      background: var(--ucm-maroon-dark);
+      display: flex;
+      gap: 2px;
+      padding: 0 var(--space-8);
+      overflow-x: auto;
+    }
+    .ds-nav a {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      padding: var(--space-3) var(--space-4);
+      display: block;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .ds-nav a:hover { color: white; border-bottom-color: rgba(255,255,255,0.4); }
+
+    .ds-content { max-width: 1100px; margin: 0 auto; padding: var(--space-8); }
+
+    .ds-section { margin-bottom: var(--space-12); }
+    .ds-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gray-500);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: var(--space-6);
+    }
+
+    .ds-row    { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: flex-start; }
+    .ds-label  { font-size: 11px; color: var(--gray-500); margin-top: var(--space-2); }
+    .ds-note   { font-size: 12px; color: var(--gray-500); font-style: italic; margin-top: var(--space-2); }
+
+    /* ─────────────────────────────────────────
+       TOKEN DISPLAY: COLORS
+    ───────────────────────────────────────── */
+    .color-swatch {
+      width: 80px;
+      text-align: center;
+    }
+    .color-swatch__block {
+      height: 60px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(0,0,0,0.08);
+      margin-bottom: var(--space-2);
+    }
+    .color-swatch__name  { font-size: 12px; font-weight: 600; }
+    .color-swatch__value { font-size: 11px; color: var(--gray-500); font-family: monospace; }
+
+    /* ─────────────────────────────────────────
+       TOKEN DISPLAY: TYPOGRAPHY
+    ───────────────────────────────────────── */
+    .type-specimen { margin-bottom: var(--space-5); }
+    .type-label    { font-size: 11px; color: var(--gray-500); margin-bottom: var(--space-1); font-family: monospace; }
+
+    /* ─────────────────────────────────────────
+       APP COMPONENTS
+    ───────────────────────────────────────── */
+
+    /* -- Top App Bar -- */
+    .app-bar {
+      background: var(--ucm-maroon);
+      color: white;
+      padding: 0 var(--space-6);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow-md);
+    }
+    .app-bar__brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .app-bar__logo {
+      height: 28px;
+      width: auto;
+      filter: brightness(0) invert(1);
+    }
+    .app-bar__brand span { opacity: 0.6; font-weight: 400; margin: 0 var(--space-1); }
+    .app-bar__right {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+    }
+    .app-bar__user {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 13px;
+      opacity: 0.85;
+    }
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700;
+    }
+
+    /* -- Side Navigation -- */
+    .side-nav {
+      width: 220px;
+      background: var(--white);
+      border-right: 1px solid var(--border);
+      padding: var(--space-4) 0;
+    }
+    .side-nav__group-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--gray-300);
+      padding: var(--space-4) var(--space-5) var(--space-2);
+    }
+    .side-nav__item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: 10px var(--space-5);
+      font-size: 14px;
+      color: var(--gray-700);
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      text-decoration: none;
+    }
+    .side-nav__item:hover { background: var(--gray-100); color: var(--gray-900); }
+    .side-nav__item.active {
+      background: var(--ucm-maroon-tint);
+      color: var(--ucm-maroon);
+      border-left-color: var(--ucm-maroon);
+      font-weight: 600;
+    }
+    .side-nav__icon { font-size: 16px; width: 20px; text-align: center; }
+    .side-nav__badge {
+      margin-left: auto;
+      background: var(--ucm-maroon);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: var(--radius-pill);
+    }
+
+    /* -- Risk Badge -- */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .badge::before {
+      content: '';
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .badge--high   { background: var(--risk-high-bg);   color: var(--risk-high-text); }
+    .badge--high::before   { background: var(--risk-high-dot); }
+    .badge--medium { background: var(--risk-medium-bg); color: var(--risk-medium-text); }
+    .badge--medium::before { background: var(--risk-medium-dot); }
+    .badge--low    { background: var(--risk-low-bg);   color: var(--risk-low-text); }
+    .badge--low::before    { background: var(--risk-low-dot); }
+
+    /* -- Patient Card -- */
+    .patient-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      box-shadow: var(--shadow-sm);
+      max-width: 360px;
+      cursor: pointer;
+      transition: box-shadow 0.15s, border-color 0.15s;
+    }
+    .patient-card:hover {
+      box-shadow: var(--shadow-md);
+      border-color: var(--gray-300);
+    }
+    .patient-card.selected {
+      border-color: var(--ucm-maroon);
+      box-shadow: 0 0 0 2px var(--ucm-maroon-tint), var(--shadow-sm);
+    }
+    .patient-card__header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: var(--space-3);
+    }
+    .patient-card__name { font-size: 16px; font-weight: 700; color: var(--gray-900); }
+    .patient-card__id   { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+    .patient-card__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-4);
+      font-size: 13px;
+      color: var(--gray-700);
+      margin: var(--space-3) 0;
+      padding: var(--space-3) 0;
+      border-top: 1px solid var(--gray-100);
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .patient-card__meta-item { display: flex; flex-direction: column; gap: 1px; }
+    .patient-card__meta-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--gray-500); font-weight: 600; }
+    .patient-card__footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: var(--space-3);
+    }
+    .patient-card__nba {
+      font-size: 12px;
+      color: var(--ucm-maroon);
+      font-weight: 600;
+    }
+
+    /* -- Triage List Table -- */
+    .triage-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+    }
+    .triage-table thead tr {
+      background: var(--gray-100);
+      border-bottom: 1px solid var(--border);
+    }
+    .triage-table th {
+      text-align: left;
+      padding: var(--space-3) var(--space-4);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--gray-500);
+    }
+    .triage-table td {
+      padding: var(--space-4);
+      font-size: 14px;
+      color: var(--gray-900);
+      border-bottom: 1px solid var(--gray-100);
+      vertical-align: middle;
+    }
+    .triage-table tbody tr:last-child td { border-bottom: none; }
+    .triage-table tbody tr:hover { background: var(--gray-100); }
+    .triage-table tbody tr.row--high { border-left: 3px solid var(--risk-high-dot); }
+    .triage-table tbody tr.row--medium { border-left: 3px solid var(--risk-medium-dot); }
+    .triage-table tbody tr.row--low { border-left: 3px solid var(--risk-low-dot); }
+    .triage-table .patient-name { font-weight: 600; }
+    .triage-table .patient-sub  { font-size: 12px; color: var(--gray-500); }
+
+    /* -- Next Best Action Card -- */
+    .nba-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-4) var(--space-5);
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-4);
+      max-width: 460px;
+    }
+    .nba-card__icon {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .nba-card__icon--call   { background: #E3F2FD; }
+    .nba-card__icon--visit  { background: var(--ucm-maroon-tint); }
+    .nba-card__icon--rx     { background: #E8F5E9; }
+    .nba-card__icon--alert  { background: #FFF8E1; }
+    .nba-card__body { flex: 1; }
+    .nba-card__label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--gray-500); }
+    .nba-card__title { font-size: 14px; font-weight: 700; color: var(--gray-900); margin: 2px 0; }
+    .nba-card__desc  { font-size: 13px; color: var(--gray-700); }
+    .nba-card__action { margin-top: var(--space-3); }
+
+    /* -- Stat / KPI Tile -- */
+    .stat-tile {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5) var(--space-6);
+      min-width: 140px;
+      box-shadow: var(--shadow-sm);
+    }
+    .stat-tile__label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--gray-500); }
+    .stat-tile__value { font-size: 32px; font-weight: 800; color: var(--gray-900); line-height: 1.15; margin: var(--space-1) 0; }
+    .stat-tile__value--red    { color: var(--risk-high-text); }
+    .stat-tile__value--amber  { color: var(--risk-medium-text); }
+    .stat-tile__value--green  { color: var(--risk-low-text); }
+    .stat-tile__sub  { font-size: 12px; color: var(--gray-500); }
+    .stat-tile__delta {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 12px; font-weight: 600; margin-top: var(--space-2);
+    }
+    .stat-tile__delta--up   { color: var(--risk-high-text); }
+    .stat-tile__delta--down { color: var(--risk-low-text); }
+
+    /* -- Buttons -- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: 9px var(--space-5);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.15s;
+      text-decoration: none;
+      line-height: 1;
+    }
+    .btn:focus-visible {
+      outline: 3px solid var(--ucm-maroon);
+      outline-offset: 2px;
+    }
+    .btn--primary {
+      background: var(--ucm-maroon);
+      color: var(--white);
+      border-color: var(--ucm-maroon);
+    }
+    .btn--primary:hover { background: var(--ucm-maroon-dark); border-color: var(--ucm-maroon-dark); }
+    .btn--secondary {
+      background: transparent;
+      color: var(--ucm-maroon);
+      border-color: var(--ucm-maroon);
+    }
+    .btn--secondary:hover { background: var(--ucm-maroon-tint); }
+    .btn--ghost {
+      background: transparent;
+      color: var(--gray-700);
+      border-color: transparent;
+    }
+    .btn--ghost:hover { background: var(--gray-100); color: var(--gray-900); }
+    .btn--danger {
+      background: transparent;
+      color: var(--error);
+      border-color: var(--error);
+    }
+    .btn--danger:hover { background: #FDECEA; }
+    .btn--sm { padding: 6px 14px; font-size: 12px; }
+    .btn--icon { padding: 8px; border-radius: var(--radius-sm); }
+
+    /* -- Input / Search -- */
+    .input-group { display: flex; flex-direction: column; gap: var(--space-1); max-width: 320px; }
+    .input-label { font-size: 13px; font-weight: 600; color: var(--gray-700); }
+    .input {
+      padding: 9px var(--space-4);
+      border: 1.5px solid var(--gray-300);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      color: var(--gray-900);
+      background: var(--white);
+      transition: border-color 0.15s;
+    }
+    .input:focus {
+      outline: none;
+      border-color: var(--ucm-maroon);
+      box-shadow: 0 0 0 3px var(--ucm-maroon-tint);
+    }
+    .input::placeholder { color: var(--gray-300); }
+    .input-hint { font-size: 12px; color: var(--gray-500); }
+    .input-error { font-size: 12px; color: var(--error); }
+
+    .search-field {
+      display: flex;
+      align-items: center;
+      background: var(--white);
+      border: 1.5px solid var(--gray-300);
+      border-radius: var(--radius-pill);
+      padding: 0 var(--space-4);
+      gap: var(--space-2);
+      max-width: 340px;
+    }
+    .search-field:focus-within { border-color: var(--ucm-maroon); box-shadow: 0 0 0 3px var(--ucm-maroon-tint); }
+    .search-field input {
+      border: none; outline: none; flex: 1;
+      font-family: var(--font-sans); font-size: 14px;
+      padding: 9px 0; color: var(--gray-900); background: transparent;
+    }
+    .search-field .search-icon { color: var(--gray-500); font-size: 16px; }
+
+    /* -- Select / Filter -- */
+    .select {
+      padding: 9px var(--space-4);
+      border: 1.5px solid var(--gray-300);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      color: var(--gray-900);
+      background: var(--white);
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23717171' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+    .select:focus { outline: none; border-color: var(--ucm-maroon); box-shadow: 0 0 0 3px var(--ucm-maroon-tint); }
+
+    /* -- Chip / Filter Tags -- */
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 12px; font-weight: 600;
+      background: var(--gray-100);
+      color: var(--gray-700);
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .chip:hover { background: var(--gray-100); border-color: var(--gray-300); color: var(--gray-900); }
+    .chip.active { background: var(--ucm-maroon-tint); color: var(--ucm-maroon); border-color: var(--ucm-maroon); }
+    .chip__remove { font-size: 14px; opacity: 0.6; }
+
+    /* -- Alert / Notification Banner -- */
+    .alert {
+      display: flex; align-items: flex-start; gap: var(--space-4);
+      padding: var(--space-4) var(--space-5);
+      border-radius: var(--radius-md);
+      border-left: 4px solid;
+      font-size: 14px;
+    }
+    .alert--info    { background: #E3F2FD; border-color: var(--info);    color: #0D3B7A; }
+    .alert--warning { background: #FFF8E1; border-color: #F59E0B; color: var(--risk-medium-text); }
+    .alert--error   { background: #FDECEA; border-color: var(--error);   color: #7F1D1D; }
+    .alert--success { background: #E8F5E9; border-color: var(--success); color: #14532D; }
+    .alert__icon    { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .alert__title   { font-weight: 700; margin-bottom: 2px; }
+    .alert__body    { font-size: 13px; opacity: 0.85; }
+
+    /* -- Timeline / Activity Feed -- */
+    .timeline { padding-left: var(--space-2); }
+    .timeline-item {
+      display: flex; gap: var(--space-4);
+      padding-bottom: var(--space-5);
+      position: relative;
+    }
+    .timeline-item::before {
+      content: ''; position: absolute;
+      left: 15px; top: 28px; bottom: 0;
+      width: 1px; background: var(--border);
+    }
+    .timeline-item:last-child::before { display: none; }
+    .timeline-dot {
+      width: 30px; height: 30px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; flex-shrink: 0;
+      background: var(--gray-100); color: var(--gray-700);
+      border: 2px solid var(--border);
+      z-index: 1;
+    }
+    .timeline-dot--maroon { background: var(--ucm-maroon-tint); color: var(--ucm-maroon); border-color: var(--ucm-maroon); }
+    .timeline-dot--red    { background: var(--risk-high-bg);    color: var(--risk-high-dot); border-color: var(--risk-high-dot); }
+    .timeline-body { flex: 1; }
+    .timeline-body__title { font-size: 14px; font-weight: 600; color: var(--gray-900); }
+    .timeline-body__desc  { font-size: 13px; color: var(--gray-700); margin-top: 2px; }
+    .timeline-body__time  { font-size: 11px; color: var(--gray-500); margin-top: 4px; }
+
+    /* -- Section Divider / Label -- */
+    .divider {
+      height: 1px; background: var(--border);
+      margin: var(--space-6) 0;
+    }
+    .section-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+      text-transform: uppercase; color: var(--gray-500);
+      margin-bottom: var(--space-4);
+    }
+
+    /* ─────────────────────────────────────────
+       DS PAGE HELPERS
+    ───────────────────────────────────────── */
+    .preview-bg {
+      background: var(--gray-100);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-6);
+      margin-bottom: var(--space-2);
+    }
+    .preview-bg--dark {
+      background: var(--gray-900);
+    }
+    .preview-bg--white {
+      background: var(--white);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── DS HEADER ─────────────────────────────────────────────── -->
+<div class="ds-header">
+  <img class="ds-header__logo" src="../img/uchicago-medicine-logo-vector.svg" alt="UChicago Medicine" />
+  <div class="ds-header__divider"></div>
+  <div>
+    <h1>Care Coordination — Design System</h1>
+    <p>Component reference for the Patient Triage &amp; Readmission Risk React application</p>
+  </div>
+</div>
+
+<nav class="ds-nav">
+  <a href="#colors">Colors</a>
+  <a href="#provenance">Data Provenance</a>
+  <a href="#typography">Typography</a>
+  <a href="#navigation">Navigation</a>
+  <a href="#badges">Risk Badges</a>
+  <a href="#patient-card">Patient Card</a>
+  <a href="#triage-table">Triage Table</a>
+  <a href="#nba">Next Best Actions</a>
+  <a href="#stats">Stat Tiles</a>
+  <a href="#buttons">Buttons</a>
+  <a href="#inputs">Inputs</a>
+  <a href="#alerts">Alerts</a>
+  <a href="#timeline">Timeline</a>
+</nav>
+
+<div class="ds-content">
+
+  <!-- ── COLORS ────────────────────────────────────────── -->
+  <section class="ds-section" id="colors">
+    <div class="ds-section-title">Brand Colors</div>
+
+    <div class="ds-label" style="margin-bottom:12px;font-weight:600;font-size:13px;">UCM Maroon — Primary</div>
+    <div class="ds-row" style="margin-bottom:24px;">
+      <div class="color-swatch">
+        <div class="color-swatch__block" style="background:#820B25;"></div>
+        <div class="color-swatch__name">Maroon</div>
+        <div class="color-swatch__value">#820B25</div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-swatch__block" style="background:#A50E2D;"></div>
+        <div class="color-swatch__name">Maroon Mid</div>
+        <div class="color-swatch__value">#A50E2D</div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-swatch__block" style="background:#5C0819;"></div>
+        <div class="color-swatch__name">Maroon Dark</div>
+        <div class="color-swatch__value">#5C0819</div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-swatch__block" style="background:#F5E8EB; border:1px solid #ddd;"></div>
+        <div class="color-swatch__name">Maroon Tint</div>
+        <div class="color-swatch__value">#F5E8EB</div>
+      </div>
+    </div>
+
+    <div class="ds-label" style="margin-bottom:12px;font-weight:600;font-size:13px;">Neutral Scale</div>
+    <div class="ds-row" style="margin-bottom:24px;">
+      <div class="color-swatch"><div class="color-swatch__block" style="background:#1A1A1A;"></div><div class="color-swatch__name">Gray 900</div><div class="color-swatch__value">#1A1A1A</div></div>
+      <div class="color-swatch"><div class="color-swatch__block" style="background:#3D3D3D;"></div><div class="color-swatch__name">Gray 700</div><div class="color-swatch__value">#3D3D3D</div></div>
+      <div class="color-swatch"><div class="color-swatch__block" style="background:#717171;"></div><div class="color-swatch__name">Gray 500</div><div class="color-swatch__value">#717171</div></div>
+      <div class="color-swatch"><div class="color-swatch__block" style="background:#C4C4C4;"></div><div class="color-swatch__name">Gray 300</div><div class="color-swatch__value">#C4C4C4</div></div>
+      <div class="color-swatch"><div class="color-swatch__block" style="background:#F2F2F2; border:1px solid #ddd;"></div><div class="color-swatch__name">Gray 100</div><div class="color-swatch__value">#F2F2F2</div></div>
+      <div class="color-swatch"><div class="color-swatch__block" style="background:#FFFFFF; border:1px solid #ddd;"></div><div class="color-swatch__name">White</div><div class="color-swatch__value">#FFFFFF</div></div>
+    </div>
+
+    <div class="ds-label" style="margin-bottom:12px;font-weight:600;font-size:13px;">Risk / Status Colors</div>
+    <div class="ds-row">
+      <div class="color-swatch"><div class="color-swatch__block" style="background:#D32F2F;"></div><div class="color-swatch__name">High Risk</div><div class="color-swatch__value">#D32F2F</div></div>
+      <div class="color-swatch"><div class="color-swatch__block" style="background:#F59E0B;"></div><div class="color-swatch__name">Medium Risk</div><div class="color-swatch__value">#F59E0B</div></div>
+      <div class="color-swatch"><div class="color-swatch__block" style="background:#388E3C;"></div><div class="color-swatch__name">Low Risk</div><div class="color-swatch__value">#388E3C</div></div>
+      <div class="color-swatch"><div class="color-swatch__block" style="background:#1565C0;"></div><div class="color-swatch__name">Info</div><div class="color-swatch__value">#1565C0</div></div>
+    </div>
+  </section>
+
+  <!-- ── DATA PROVENANCE ────────────────────────────────── -->
+  <section class="ds-section" id="provenance">
+    <div class="ds-section-title">Data Provenance — Source System Language</div>
+    <p class="ds-note" style="margin-bottom:24px;">
+      The central product thesis is that this app joins Epic and Salesforce. That claim is only
+      credible if every value on screen carries its origin. These colors are reserved exclusively
+      for source attribution — never for decoration. <strong>UCM maroon is reserved for the
+      orchestration layer itself</strong>, i.e. work this app did.
+    </p>
+
+    <div class="ds-row" style="margin-bottom:24px;">
+      <div class="color-swatch" style="width:110px;">
+        <div class="color-swatch__block" style="background:#1B7F79;"></div>
+        <div class="color-swatch__name">Epic EHR</div>
+        <div class="color-swatch__value">#1B7F79</div>
+      </div>
+      <div class="color-swatch" style="width:110px;">
+        <div class="color-swatch__block" style="background:#0176D3;"></div>
+        <div class="color-swatch__name">Salesforce</div>
+        <div class="color-swatch__value">#0176D3</div>
+      </div>
+      <div class="color-swatch" style="width:110px;">
+        <div class="color-swatch__block" style="background:#7526E3;"></div>
+        <div class="color-swatch__name">Agentforce</div>
+        <div class="color-swatch__value">#7526E3</div>
+      </div>
+      <div class="color-swatch" style="width:110px;">
+        <div class="color-swatch__block" style="background:#E35205;"></div>
+        <div class="color-swatch__name">Mktg Cloud</div>
+        <div class="color-swatch__value">#E35205</div>
+      </div>
+      <div class="color-swatch" style="width:110px;">
+        <div class="color-swatch__block" style="background:#820B25;"></div>
+        <div class="color-swatch__name">This Layer</div>
+        <div class="color-swatch__value">#820B25</div>
+      </div>
+    </div>
+
+    <div class="ds-label" style="margin-bottom:12px;font-weight:600;font-size:13px;">Source Tag — <code>.src</code></div>
+    <div class="preview-bg" style="margin-bottom:8px;">
+      <div class="ds-row" style="align-items:center;">
+        <span style="display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:800;letter-spacing:0.7px;text-transform:uppercase;padding:2px 7px;border-radius:3px;background:#E4F2F1;color:#1B7F79;"><span style="width:5px;height:5px;border-radius:50%;background:#1B7F79;"></span>Epic</span>
+        <span style="display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:800;letter-spacing:0.7px;text-transform:uppercase;padding:2px 7px;border-radius:3px;background:#E3F0FB;color:#0176D3;"><span style="width:5px;height:5px;border-radius:50%;background:#0176D3;"></span>Salesforce</span>
+        <span style="display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:800;letter-spacing:0.7px;text-transform:uppercase;padding:2px 7px;border-radius:3px;background:#F0E8FD;color:#7526E3;"><span style="width:5px;height:5px;border-radius:50%;background:#7526E3;"></span>Agentforce</span>
+        <span style="display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:800;letter-spacing:0.7px;text-transform:uppercase;padding:2px 7px;border-radius:3px;background:#FDEDE4;color:#E35205;"><span style="width:5px;height:5px;border-radius:50%;background:#E35205;"></span>Marketing Cloud</span>
+      </div>
+    </div>
+    <p class="ds-note" style="margin-bottom:24px;">
+      Used inline anywhere a value appears: table headers, timeline entries, risk factors,
+      recommendation footers. Small enough to be unobtrusive, consistent enough to be learned once.
+    </p>
+
+    <div class="ds-label" style="margin-bottom:12px;font-weight:600;font-size:13px;">Where each component is used</div>
+    <table class="triage-table" style="margin-bottom:8px;">
+      <thead>
+        <tr><th>Component</th><th>Purpose</th><th>Appears On</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>.src</code></td>
+          <td>Inline origin tag on any single value</td>
+          <td>All app views</td>
+        </tr>
+        <tr>
+          <td><code>.prov-bar</code></td>
+          <td>Persistent strip under app bar — live connection + sync lag per system</td>
+          <td>Coordinator, Manager, Executive</td>
+        </tr>
+        <tr>
+          <td><code>.prov-factor</code></td>
+          <td>Risk factor row tagged with contributing system and point weight</td>
+          <td>Coordinator detail rail</td>
+        </tr>
+        <tr>
+          <td><code>.conflict</code></td>
+          <td>Epic vs. Salesforce disagreement + the resolution rule applied</td>
+          <td>Coordinator detail rail, Manager reconciliation panel</td>
+        </tr>
+        <tr>
+          <td><code>.merge</code></td>
+          <td>Two source records converging into one unified record</td>
+          <td>Available — not yet placed</td>
+        </tr>
+        <tr>
+          <td><code>.arch</code></td>
+          <td>Before/after silo diagram for executive storytelling</td>
+          <td>Executive</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="ds-note">
+      Rule of thumb: if a number could plausibly have come from either system, tag it.
+      If a coordinator might act on it, tag it and show its freshness.
+    </p>
+  </section>
+
+  <!-- ── TYPOGRAPHY ─────────────────────────────────────── -->
+  <section class="ds-section" id="typography">
+    <div class="ds-section-title">Typography</div>
+    <p class="ds-note" style="margin-bottom:24px;">Primary: <strong>Gotham</strong> (fallback: Inter, system-ui) · Accent: <strong>Adobe Garamond Pro</strong> · Web: load Gotham via licensed CDN or substitute Inter from Google Fonts.</p>
+
+    <div class="type-specimen">
+      <div class="type-label">Display — 36px / 700 / Gotham</div>
+      <div style="font-size:36px;font-weight:700;line-height:1.15;">Patient Triage Dashboard</div>
+    </div>
+    <div class="type-specimen">
+      <div class="type-label">H1 — 28px / 700</div>
+      <div style="font-size:28px;font-weight:700;line-height:1.2;">Readmission Risk Overview</div>
+    </div>
+    <div class="type-specimen">
+      <div class="type-label">H2 — 22px / 600</div>
+      <div style="font-size:22px;font-weight:600;line-height:1.25;">High-Risk Patient Queue</div>
+    </div>
+    <div class="type-specimen">
+      <div class="type-label">H3 — 17px / 600</div>
+      <div style="font-size:17px;font-weight:600;line-height:1.3;">Next Best Actions</div>
+    </div>
+    <div class="type-specimen">
+      <div class="type-label">Body — 15px / 400</div>
+      <div style="font-size:15px;line-height:1.6;max-width:560px;">Patient was discharged 3 days ago following treatment for congestive heart failure. Follow-up appointment has not been scheduled. Risk score elevated based on prior 30-day readmission history.</div>
+    </div>
+    <div class="type-specimen">
+      <div class="type-label">Body Small — 13px / 400</div>
+      <div style="font-size:13px;line-height:1.5;color:#717171;">Last updated · 2 hours ago · Source: Epic EHR via Data Cloud</div>
+    </div>
+    <div class="type-specimen">
+      <div class="type-label">Label / Overline — 11px / 700 / Uppercase / 1.2px tracking</div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#717171;">Discharge Date</div>
+    </div>
+    <div class="type-specimen">
+      <div class="type-label">Serif Accent (Garamond) — use for pull quotes, executive summary</div>
+      <div style="font-family:'Adobe Garamond Pro','Garamond',Georgia,serif;font-size:22px;font-style:italic;color:#820B25;">"Bringing together the data they already have."</div>
+    </div>
+  </section>
+
+  <!-- ── NAVIGATION ─────────────────────────────────────── -->
+  <section class="ds-section" id="navigation">
+    <div class="ds-section-title">Navigation</div>
+
+    <div class="ds-label">App Bar</div>
+    <div class="preview-bg" style="padding:0;margin-bottom:8px;">
+      <div class="app-bar">
+        <div class="app-bar__brand">
+          <img class="app-bar__logo" src="../img/uchicago-medicine-logo-vector.svg" alt="UChicago Medicine" />
+          <span>|</span>
+          Care Coordination
+        </div>
+        <div class="app-bar__right">
+          <div class="app-bar__user">
+            <div class="avatar">SL</div>
+            Sarah Lin, RN
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="ds-note" style="margin-bottom:24px;">Height: 56px. Brand maroon background. Role + name shown in top right.</p>
+
+    <div class="ds-label">Side Navigation</div>
+    <div class="preview-bg preview-bg--white" style="padding:0; max-width:220px; margin-bottom:8px; overflow:hidden; border-radius:8px;">
+      <div class="side-nav">
+        <div class="side-nav__group-label">Triage</div>
+        <a class="side-nav__item active" href="#">
+          <span class="side-nav__icon">⚠️</span>
+          Patient Queue
+          <span class="side-nav__badge">12</span>
+        </a>
+        <a class="side-nav__item" href="#">
+          <span class="side-nav__icon">📋</span>
+          My Assignments
+        </a>
+        <div class="side-nav__group-label">Tools</div>
+        <a class="side-nav__item" href="#">
+          <span class="side-nav__icon">📊</span>
+          Analytics
+        </a>
+        <a class="side-nav__item" href="#">
+          <span class="side-nav__icon">🔔</span>
+          Alerts
+        </a>
+        <div class="side-nav__group-label">Admin</div>
+        <a class="side-nav__item" href="#">
+          <span class="side-nav__icon">⚙️</span>
+          Settings
+        </a>
+      </div>
+    </div>
+    <p class="ds-note">Active state: maroon left border + tinted background. Badge for counts.</p>
+  </section>
+
+  <!-- ── RISK BADGES ────────────────────────────────────── -->
+  <section class="ds-section" id="badges">
+    <div class="ds-section-title">Risk Badges</div>
+
+    <div class="preview-bg">
+      <div class="ds-row">
+        <div>
+          <span class="badge badge--high">High Risk</span>
+          <div class="ds-label">Score 75–100</div>
+        </div>
+        <div>
+          <span class="badge badge--medium">Medium Risk</span>
+          <div class="ds-label">Score 40–74</div>
+        </div>
+        <div>
+          <span class="badge badge--low">Low Risk</span>
+          <div class="ds-label">Score 0–39</div>
+        </div>
+      </div>
+    </div>
+    <p class="ds-note">Risk score is computed from Epic + Salesforce data via Data Cloud. Dot + label. Use pill shape only for risk status.</p>
+  </section>
+
+  <!-- ── PATIENT CARD ───────────────────────────────────── -->
+  <section class="ds-section" id="patient-card">
+    <div class="ds-section-title">Patient Card</div>
+
+    <div class="preview-bg">
+      <div class="ds-row">
+        <div class="patient-card selected">
+          <div class="patient-card__header">
+            <div>
+              <div class="patient-card__name">Darnell Washington</div>
+              <div class="patient-card__id">MRN: 4820193 · Discharged 3d ago</div>
+            </div>
+            <span class="badge badge--high">High Risk</span>
+          </div>
+          <div class="patient-card__meta">
+            <div class="patient-card__meta-item">
+              <span class="patient-card__meta-label">Dx</span>
+              <span>CHF Exacerbation</span>
+            </div>
+            <div class="patient-card__meta-item">
+              <span class="patient-card__meta-label">Age</span>
+              <span>67</span>
+            </div>
+            <div class="patient-card__meta-item">
+              <span class="patient-card__meta-label">Risk Score</span>
+              <span>88 / 100</span>
+            </div>
+          </div>
+          <div class="patient-card__footer">
+            <span class="patient-card__nba">→ Schedule follow-up call</span>
+            <button class="btn btn--primary btn--sm">View</button>
+          </div>
+        </div>
+
+        <div class="patient-card">
+          <div class="patient-card__header">
+            <div>
+              <div class="patient-card__name">Maria Okonkwo</div>
+              <div class="patient-card__id">MRN: 3310485 · Discharged 7d ago</div>
+            </div>
+            <span class="badge badge--medium">Medium Risk</span>
+          </div>
+          <div class="patient-card__meta">
+            <div class="patient-card__meta-item">
+              <span class="patient-card__meta-label">Dx</span>
+              <span>COPD</span>
+            </div>
+            <div class="patient-card__meta-item">
+              <span class="patient-card__meta-label">Age</span>
+              <span>54</span>
+            </div>
+            <div class="patient-card__meta-item">
+              <span class="patient-card__meta-label">Risk Score</span>
+              <span>62 / 100</span>
+            </div>
+          </div>
+          <div class="patient-card__footer">
+            <span class="patient-card__nba">→ Send medication reminder</span>
+            <button class="btn btn--secondary btn--sm">View</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="ds-note">Selected state: maroon border + tinted ring. Always show top next best action inline. Risk badge top-right. Primary CTA matches risk priority.</p>
+  </section>
+
+  <!-- ── TRIAGE TABLE ───────────────────────────────────── -->
+  <section class="ds-section" id="triage-table">
+    <div class="ds-section-title">Triage List — Table View</div>
+
+    <div class="preview-bg preview-bg--white" style="padding:0;overflow:hidden;border-radius:12px;">
+      <table class="triage-table">
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Risk Level</th>
+            <th>Diagnosis</th>
+            <th>Discharged</th>
+            <th>Risk Score</th>
+            <th>Assigned To</th>
+            <th>Next Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row--high">
+            <td>
+              <div class="patient-name">Darnell Washington</div>
+              <div class="patient-sub">MRN 4820193 · 67M</div>
+            </td>
+            <td><span class="badge badge--high">High</span></td>
+            <td>CHF Exacerbation</td>
+            <td>3 days ago</td>
+            <td><strong>88</strong></td>
+            <td>Sarah Lin</td>
+            <td><span style="color:#820B25;font-weight:600;font-size:13px;">📞 Call today</span></td>
+          </tr>
+          <tr class="row--high">
+            <td>
+              <div class="patient-name">Robert Osei</div>
+              <div class="patient-sub">MRN 7730021 · 72M</div>
+            </td>
+            <td><span class="badge badge--high">High</span></td>
+            <td>Sepsis Recovery</td>
+            <td>1 day ago</td>
+            <td><strong>81</strong></td>
+            <td>Unassigned</td>
+            <td><span style="color:#820B25;font-weight:600;font-size:13px;">⚠️ Assign now</span></td>
+          </tr>
+          <tr class="row--medium">
+            <td>
+              <div class="patient-name">Maria Okonkwo</div>
+              <div class="patient-sub">MRN 3310485 · 54F</div>
+            </td>
+            <td><span class="badge badge--medium">Medium</span></td>
+            <td>COPD</td>
+            <td>7 days ago</td>
+            <td><strong>62</strong></td>
+            <td>James Porter</td>
+            <td><span style="color:#7B5100;font-weight:600;font-size:13px;">💊 Rx reminder</span></td>
+          </tr>
+          <tr class="row--low">
+            <td>
+              <div class="patient-name">Angela Torres</div>
+              <div class="patient-sub">MRN 5540882 · 44F</div>
+            </td>
+            <td><span class="badge badge--low">Low</span></td>
+            <td>Appendectomy</td>
+            <td>5 days ago</td>
+            <td><strong>22</strong></td>
+            <td>Sarah Lin</td>
+            <td><span style="color:#388E3C;font-weight:600;font-size:13px;">✓ Monitor</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="ds-note">Left border color = risk tier. Sort by score descending by default. High-risk unassigned rows surface as priority alert state.</p>
+  </section>
+
+  <!-- ── NEXT BEST ACTIONS ──────────────────────────────── -->
+  <section class="ds-section" id="nba">
+    <div class="ds-section-title">Next Best Action Cards</div>
+
+    <div class="preview-bg">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="nba-card">
+          <div class="nba-card__icon nba-card__icon--call">📞</div>
+          <div class="nba-card__body">
+            <div class="nba-card__label">Recommended · High Priority</div>
+            <div class="nba-card__title">Outbound Post-Discharge Call</div>
+            <div class="nba-card__desc">Patient has not confirmed medication pickup. Call window: today before 5pm.</div>
+            <div class="nba-card__action">
+              <button class="btn btn--primary btn--sm">Log Call</button>
+              <button class="btn btn--ghost btn--sm">Dismiss</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="nba-card">
+          <div class="nba-card__icon nba-card__icon--visit">🏥</div>
+          <div class="nba-card__body">
+            <div class="nba-card__label">Recommended · Medium Priority</div>
+            <div class="nba-card__title">Schedule Follow-Up Appointment</div>
+            <div class="nba-card__desc">No PCP follow-up scheduled within 7 days of discharge. High readmission correlation.</div>
+            <div class="nba-card__action">
+              <button class="btn btn--secondary btn--sm">Schedule via MyChart</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="nba-card">
+          <div class="nba-card__icon nba-card__icon--rx">💊</div>
+          <div class="nba-card__body">
+            <div class="nba-card__label">Automated · Low Priority</div>
+            <div class="nba-card__title">Send Medication Reminder SMS</div>
+            <div class="nba-card__desc">Trigger via Marketing Cloud. Patient opted in to SMS. Furosemide 40mg refill due.</div>
+            <div class="nba-card__action">
+              <button class="btn btn--ghost btn--sm">Send Now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="ds-note">Actions sourced from Agentforce recommendations. "Recommended" = AI-suggested, "Automated" = can trigger without coordinator action. Always show source system.</p>
+  </section>
+
+  <!-- ── STAT TILES ─────────────────────────────────────── -->
+  <section class="ds-section" id="stats">
+    <div class="ds-section-title">Stat / KPI Tiles</div>
+
+    <div class="preview-bg">
+      <div class="ds-row">
+        <div class="stat-tile">
+          <div class="stat-tile__label">High Risk</div>
+          <div class="stat-tile__value stat-tile__value--red">14</div>
+          <div class="stat-tile__sub">patients today</div>
+          <div class="stat-tile__delta stat-tile__delta--up">▲ 3 vs yesterday</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-tile__label">Medium Risk</div>
+          <div class="stat-tile__value stat-tile__value--amber">31</div>
+          <div class="stat-tile__sub">patients today</div>
+          <div class="stat-tile__delta stat-tile__delta--down">▼ 2 vs yesterday</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-tile__label">Low Risk</div>
+          <div class="stat-tile__value stat-tile__value--green">88</div>
+          <div class="stat-tile__sub">patients today</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-tile__label">30-Day Readmit Rate</div>
+          <div class="stat-tile__value">18.4%</div>
+          <div class="stat-tile__sub">rolling 30 days</div>
+          <div class="stat-tile__delta stat-tile__delta--down">▼ 1.2% vs prior period</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-tile__label">Unassigned</div>
+          <div class="stat-tile__value stat-tile__value--red">7</div>
+          <div class="stat-tile__sub">high-risk, no owner</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── BUTTONS ────────────────────────────────────────── -->
+  <section class="ds-section" id="buttons">
+    <div class="ds-section-title">Buttons</div>
+
+    <div class="preview-bg">
+      <div class="ds-row" style="margin-bottom:16px;">
+        <button class="btn btn--primary">Primary Action</button>
+        <button class="btn btn--secondary">Secondary</button>
+        <button class="btn btn--ghost">Ghost</button>
+        <button class="btn btn--danger">Destructive</button>
+      </div>
+      <div class="ds-row">
+        <button class="btn btn--primary btn--sm">Primary Small</button>
+        <button class="btn btn--secondary btn--sm">Secondary Small</button>
+        <button class="btn btn--ghost btn--sm">Ghost Small</button>
+      </div>
+    </div>
+    <p class="ds-note">Primary = maroon fill. Secondary = maroon outline. Ghost for tertiary/inline. Destructive only for irreversible actions. All states have visible focus ring (3px maroon).</p>
+  </section>
+
+  <!-- ── INPUTS ─────────────────────────────────────────── -->
+  <section class="ds-section" id="inputs">
+    <div class="ds-section-title">Inputs &amp; Filters</div>
+
+    <div class="preview-bg">
+      <div class="ds-row" style="align-items:flex-start;gap:24px;">
+        <div class="search-field">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Search patients by name or MRN…" />
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Filter by Coordinator</label>
+          <select class="select">
+            <option>All Coordinators</option>
+            <option>Sarah Lin</option>
+            <option>James Porter</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Note / Outcome</label>
+          <input class="input" type="text" placeholder="e.g. Left voicemail, will retry…" />
+          <span class="input-hint">Will be logged to patient record in Salesforce.</span>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <div class="section-label">Filter Chips</div>
+        <div class="ds-row">
+          <span class="chip active">All Patients</span>
+          <span class="chip">High Risk</span>
+          <span class="chip">Unassigned</span>
+          <span class="chip">No Follow-Up Scheduled</span>
+          <span class="chip">Called Today</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ALERTS ─────────────────────────────────────────── -->
+  <section class="ds-section" id="alerts">
+    <div class="ds-section-title">Alerts &amp; Notifications</div>
+
+    <div class="preview-bg">
+      <div style="display:flex;flex-direction:column;gap:12px;max-width:560px;">
+        <div class="alert alert--error">
+          <span class="alert__icon">🔴</span>
+          <div>
+            <div class="alert__title">7 High-Risk Patients Unassigned</div>
+            <div class="alert__body">These patients have no care coordinator and are approaching 48h post-discharge. Assign now to prevent gaps.</div>
+          </div>
+        </div>
+        <div class="alert alert--warning">
+          <span class="alert__icon">🟡</span>
+          <div>
+            <div class="alert__title">Data Sync Delay — Epic</div>
+            <div class="alert__body">Risk scores last updated 4 hours ago. Salesforce ↔ Epic sync is running. Data may be stale.</div>
+          </div>
+        </div>
+        <div class="alert alert--success">
+          <span class="alert__icon">🟢</span>
+          <div>
+            <div class="alert__title">Call Logged Successfully</div>
+            <div class="alert__body">Darnell Washington's record has been updated in Salesforce Health Cloud.</div>
+          </div>
+        </div>
+        <div class="alert alert--info">
+          <span class="alert__icon">🔵</span>
+          <div>
+            <div class="alert__title">Agentforce Recommendation Available</div>
+            <div class="alert__body">A new next best action has been generated for 3 patients based on updated Epic discharge data.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TIMELINE ───────────────────────────────────────── -->
+  <section class="ds-section" id="timeline">
+    <div class="ds-section-title">Patient Timeline / Activity Feed</div>
+
+    <div class="preview-bg preview-bg--white">
+      <div class="timeline" style="max-width:480px;padding:8px;">
+        <div class="timeline-item">
+          <div class="timeline-dot timeline-dot--red">🏥</div>
+          <div class="timeline-body">
+            <div class="timeline-body__title">ED Admission</div>
+            <div class="timeline-body__desc">Admitted via Emergency — CHF exacerbation. Source: Epic.</div>
+            <div class="timeline-body__time">Sep 14, 2026 · 11:42 PM</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot">📋</div>
+          <div class="timeline-body">
+            <div class="timeline-body__title">Discharge — Risk Flagged High</div>
+            <div class="timeline-body__desc">Patient discharged. Risk score: 88/100. Agentforce generated 3 recommended actions.</div>
+            <div class="timeline-body__time">Sep 17, 2026 · 9:15 AM</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot timeline-dot--maroon">📞</div>
+          <div class="timeline-body">
+            <div class="timeline-body__title">Outbound Call — No Answer</div>
+            <div class="timeline-body__desc">Left voicemail. Will retry tomorrow AM. Logged by Sarah Lin.</div>
+            <div class="timeline-body__time">Sep 17, 2026 · 2:30 PM</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot">💊</div>
+          <div class="timeline-body">
+            <div class="timeline-body__title">SMS Sent — Medication Reminder</div>
+            <div class="timeline-body__desc">Automated via Marketing Cloud. Furosemide refill reminder. Patient opted in.</div>
+            <div class="timeline-body__time">Sep 17, 2026 · 3:00 PM</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="ds-note">Events sourced from Epic (clinical) and Salesforce (engagement). Color-coded dots by event type. Maroon = coordinator action, red = clinical event, grey = automated.</p>
+  </section>
+
+</div>
+
+</body>
+</html>

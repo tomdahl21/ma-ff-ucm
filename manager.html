@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manager Dashboard — UCM Care Coordination</title>
+  <link rel="stylesheet" href="css/app.css" />
+  <style>
+    .app-bar { background: #2F5580; }
+    .side-nav__item.active {
+      background: #DDEAF8; color: #2F5580; border-left-color: #2F5580;
+    }
+    .side-nav__badge { background: #2F5580; }
+    .side-nav__badge--alert { background: var(--risk-high-dot); }
+    .btn--primary { background: #2F5580; border-color: #2F5580; }
+    .btn--primary:hover { background: #24425F; border-color: #24425F; }
+    .btn--secondary { color: #2F5580; border-color: #2F5580; }
+    .btn--secondary:hover { background: #DDEAF8; }
+    .chip.active { background: #DDEAF8; color: #2F5580; border-color: #2F5580; }
+    .search-field:focus-within { border-color: #2F5580; box-shadow: 0 0 0 3px #DDEAF8; }
+
+    .capacity-bar {
+      height: 7px; border-radius: var(--radius-pill);
+      background: var(--gray-100); overflow: hidden;
+      width: 110px; margin-top: 5px;
+    }
+    .capacity-bar__fill { height: 100%; border-radius: var(--radius-pill); }
+    .capacity-bar__fill--over  { background: var(--risk-high-dot); }
+    .capacity-bar__fill--near  { background: var(--risk-medium-dot); }
+    .capacity-bar__fill--ok    { background: var(--risk-low-dot); }
+    .capacity-label { font-size: 11px; color: var(--gray-500); margin-top: 3px; }
+
+    .assign-row {
+      display: flex; align-items: center; gap: var(--space-3);
+      padding: var(--space-4) var(--space-5);
+      border-bottom: 1px solid var(--gray-100);
+      background: #fffbfb;
+    }
+    .assign-row:last-child { border-bottom: none; }
+    .assign-row__info { flex: 1; min-width: 0; }
+    .assign-row__name { font-weight: 700; font-size: 14px; }
+    .assign-row__meta { font-size: 12px; color: var(--gray-500); margin-top: 1px; }
+    .assign-row__controls { display: flex; gap: var(--space-2); align-items: center; flex-shrink: 0; }
+
+    .mini-chart {
+      display: flex; align-items: flex-end; gap: 5px;
+      height: 70px; padding-top: var(--space-3);
+    }
+    .mini-chart__bar {
+      flex: 1; border-radius: 3px 3px 0 0;
+      background: #2F5580; opacity: 0.85;
+      position: relative; min-height: 4px;
+    }
+    .mini-chart__bar:hover { opacity: 1; }
+    .mini-chart__bar--alert { background: var(--risk-high-dot); }
+    .mini-chart__labels {
+      display: flex; gap: 5px; margin-top: 6px;
+    }
+    .mini-chart__labels span {
+      flex: 1; text-align: center; font-size: 9px; color: var(--gray-500);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── APP BAR ─────────────────────────────────────────── -->
+<div class="app-bar">
+  <a href="index.html" class="app-bar__brand">
+    <img class="app-bar__logo" src="img/uchicago-medicine-logo-vector.svg" alt="UChicago Medicine" />
+    <span class="app-bar__divider">|</span>
+    Care Coordination · Manager
+  </a>
+  <div class="app-bar__right">
+    <a href="index.html" class="app-bar__switch">Switch Role</a>
+    <div class="app-bar__user">
+      <div class="app-bar__user-meta">
+        <div class="app-bar__user-name">James Porter</div>
+        <div class="app-bar__user-role">Manager, Care Coordination</div>
+      </div>
+      <div class="avatar">JP</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── PROVENANCE BAR ──────────────────────────────────── -->
+<div class="prov-bar">
+  <span class="prov-bar__label">Connected Sources</span>
+
+  <div class="prov-node">
+    <span class="prov-node__dot prov-node__dot--lag"></span>
+    <span class="prov-node__name">Epic EHR</span>
+    <span class="prov-node__meta">synced 4h 12m ago</span>
+  </div>
+  <span class="prov-bar__flow">→</span>
+
+  <div class="prov-node">
+    <span class="prov-node__dot prov-node__dot--live"></span>
+    <span class="prov-node__name">Data Cloud</span>
+    <span class="prov-node__meta">133 profiles unified</span>
+  </div>
+  <span class="prov-bar__flow">→</span>
+
+  <div class="prov-node">
+    <span class="prov-node__dot prov-node__dot--live"></span>
+    <span class="prov-node__name">Health Cloud</span>
+    <span class="prov-node__meta">live read/write</span>
+  </div>
+  <span class="prov-bar__flow">·</span>
+
+  <div class="prov-node">
+    <span class="prov-node__dot prov-node__dot--live"></span>
+    <span class="prov-node__name">Agentforce</span>
+    <span class="prov-node__meta">89 actions today</span>
+  </div>
+
+  <div class="prov-bar__spacer"></div>
+  <a href="#" class="prov-bar__cta">Data health report</a>
+</div>
+
+<div class="shell">
+
+  <!-- ── SIDE NAV ──────────────────────────────────────── -->
+  <nav class="side-nav">
+    <div class="side-nav__group-label">Oversight</div>
+    <a class="side-nav__item active" href="#">
+      <span class="side-nav__icon">📊</span> Team Dashboard
+    </a>
+    <a class="side-nav__item" href="#">
+      <span class="side-nav__icon">⚠️</span> Needs Assignment
+      <span class="side-nav__badge side-nav__badge--alert">7</span>
+    </a>
+    <a class="side-nav__item" href="#">
+      <span class="side-nav__icon">👥</span> All Patients
+      <span class="side-nav__badge">133</span>
+    </a>
+    <div class="side-nav__group-label">Team</div>
+    <a class="side-nav__item" href="#"><span class="side-nav__icon">🧑‍⚕️</span> Coordinators</a>
+    <a class="side-nav__item" href="#"><span class="side-nav__icon">📈</span> Performance</a>
+    <div class="side-nav__group-label">Account</div>
+    <a class="side-nav__item" href="#"><span class="side-nav__icon">⚙️</span> Settings</a>
+  </nav>
+
+  <!-- ── MAIN ──────────────────────────────────────────── -->
+  <main class="main">
+
+    <div class="page-head">
+      <div>
+        <h1>Team Dashboard</h1>
+        <div class="page-head__sub">Post-Discharge Care Coordination · 6 coordinators · Thursday, September 17</div>
+      </div>
+      <div class="page-head__actions">
+        <select class="select select--sm" style="width:auto;">
+          <option>Today</option>
+          <option>This Week</option>
+          <option>Last 30 Days</option>
+        </select>
+        <button class="btn btn--secondary btn--sm">Export for Huddle</button>
+      </div>
+    </div>
+
+    <!-- ── CRITICAL ALERT ─────────────────────────────── -->
+    <div class="alert alert--error">
+      <span class="alert__icon">🔴</span>
+      <div>
+        <div class="alert__title">7 high-risk patients have no assigned coordinator</div>
+        <div class="alert__body">These patients are past 24 hours post-discharge with no owner. Assign now — unassigned high-risk patients are the single largest driver of preventable readmissions.</div>
+      </div>
+    </div>
+
+    <!-- ── KPI ROW ────────────────────────────────────── -->
+    <div class="stat-row stat-row--5">
+      <div class="stat-tile stat-tile--alert">
+        <div class="stat-tile__label">Unassigned High-Risk</div>
+        <div class="stat-tile__value stat-tile__value--red">7</div>
+        <div class="stat-tile__sub">needs action now</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-tile__label">High Risk</div>
+        <div class="stat-tile__value stat-tile__value--red">34</div>
+        <div class="stat-tile__sub">across all coordinators</div>
+        <div class="stat-tile__delta stat-tile__delta--up">▲ 5 vs. yesterday</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-tile__label">Contacted &lt; 48h</div>
+        <div class="stat-tile__value stat-tile__value--amber">71%</div>
+        <div class="stat-tile__sub">target ≥ 80%</div>
+        <div class="stat-tile__delta stat-tile__delta--down">▼ 4% vs. last week</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-tile__label">Calls Today</div>
+        <div class="stat-tile__value">47</div>
+        <div class="stat-tile__sub">of 68 planned</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-tile__label">30-Day Readmit</div>
+        <div class="stat-tile__value">18.4%</div>
+        <div class="stat-tile__sub">rolling 30 days</div>
+        <div class="stat-tile__delta stat-tile__delta--down">▼ 1.2% vs. prior</div>
+      </div>
+    </div>
+
+    <!-- ── NEEDS ASSIGNMENT ───────────────────────────── -->
+    <div class="panel" style="border-color: var(--risk-high-dot); border-width: 1.5px;">
+      <div class="panel__head" style="background: var(--risk-high-bg); border-bottom-color: #ffcdd2;">
+        <div>
+          <div class="panel__title" style="color: var(--risk-high-text);">⚠️ Needs Assignment</div>
+          <div class="panel__sub">High-risk patients with no coordinator · ordered by hours since discharge</div>
+        </div>
+        <button class="btn btn--primary btn--sm">Auto-Assign All</button>
+      </div>
+      <div class="panel__body panel__body--flush">
+        <div id="assignList"></div>
+      </div>
+    </div>
+
+    <!-- ── DELEGATE / MESSAGE ─────────────────────────── -->
+    <div class="row" style="gap: var(--space-6); align-items: stretch;">
+
+      <div class="panel" style="flex: 1; margin-bottom: 0;">
+        <div class="panel__head">
+          <div>
+            <div class="panel__title">Message a Coordinator</div>
+            <div class="panel__sub">Delivered to their queue immediately</div>
+          </div>
+        </div>
+        <div class="panel__body">
+          <div class="input-group">
+            <label class="input-label">To</label>
+            <select class="select" id="msgTo"></select>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Regarding patient <span class="muted">(optional)</span></label>
+            <select class="select" id="msgPatient"><option value="">— None —</option></select>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Message</label>
+            <textarea class="input" id="msgBody" placeholder="e.g. Please prioritize the CHF patients this morning — we're behind on the 48-hour window."></textarea>
+          </div>
+          <div class="row row--center" style="justify-content:space-between;">
+            <label class="row row--center row--tight" style="font-size:12px;color:var(--gray-700);cursor:pointer;">
+              <input type="checkbox" id="msgPriority" /> Mark as priority
+            </label>
+            <button class="btn btn--primary" id="msgSend">Send Message</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="width: 420px; flex-shrink: 0; margin-bottom: 0;">
+        <div class="panel__head">
+          <div>
+            <div class="panel__title">Live Activity</div>
+            <div class="panel__sub">Updates as coordinators act</div>
+          </div>
+        </div>
+        <div class="panel__body" style="max-height: 420px; overflow-y: auto;">
+          <div class="feed" id="activityFeed"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── TEAM CASELOAD ──────────────────────────────── -->
+    <div class="panel">
+      <div class="panel__head">
+        <div>
+          <div class="panel__title">Team Caseload &amp; Activity</div>
+          <div class="panel__sub">Live — updates as coordinators log calls</div>
+        </div>
+        <div class="chip-row">
+          <span class="chip active">All</span>
+          <span class="chip">Over Capacity</span>
+          <span class="chip">Behind Target</span>
+        </div>
+      </div>
+      <div class="panel__body panel__body--flush">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Coordinator</th>
+              <th>Caseload</th>
+              <th>High Risk</th>
+              <th>Calls Today</th>
+              <th>Uncontacted</th>
+              <th>&lt; 48h Rate</th>
+              <th>Last Activity</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="cell-name">Sarah Lin, RN</div>
+                <div class="cell-sub">Post-Discharge Team A</div>
+              </td>
+              <td>
+                <strong>18</strong>
+                <div class="capacity-bar"><div class="capacity-bar__fill capacity-bar__fill--over" style="width:100%"></div></div>
+                <div class="capacity-label">Over capacity (15)</div>
+              </td>
+              <td><span class="cell-score cell-score--high">6</span></td>
+              <td>9</td>
+              <td><span class="cell-unassigned">4</span></td>
+              <td><span class="badge badge--medium">68%</span></td>
+              <td class="cell-muted">12 min ago</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="cell-name">Marcus Webb, RN</div>
+                <div class="cell-sub">Post-Discharge Team A</div>
+              </td>
+              <td>
+                <strong>14</strong>
+                <div class="capacity-bar"><div class="capacity-bar__fill capacity-bar__fill--near" style="width:93%"></div></div>
+                <div class="capacity-label">Near capacity (15)</div>
+              </td>
+              <td><span class="cell-score cell-score--high">5</span></td>
+              <td>11</td>
+              <td><span class="cell-unassigned">2</span></td>
+              <td><span class="badge badge--low">84%</span></td>
+              <td class="cell-muted">4 min ago</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="cell-name">Denise Kaur, LCSW</div>
+                <div class="cell-sub">Social Work · Complex Cases</div>
+              </td>
+              <td>
+                <strong>12</strong>
+                <div class="capacity-bar"><div class="capacity-bar__fill capacity-bar__fill--ok" style="width:80%"></div></div>
+                <div class="capacity-label">Within capacity (15)</div>
+              </td>
+              <td><span class="cell-score cell-score--high">8</span></td>
+              <td>7</td>
+              <td><span class="cell-muted">0</span></td>
+              <td><span class="badge badge--low">92%</span></td>
+              <td class="cell-muted">28 min ago</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="cell-name">Anthony Russo, RN</div>
+                <div class="cell-sub">Post-Discharge Team B</div>
+              </td>
+              <td>
+                <strong>16</strong>
+                <div class="capacity-bar"><div class="capacity-bar__fill capacity-bar__fill--over" style="width:100%"></div></div>
+                <div class="capacity-label">Over capacity (15)</div>
+              </td>
+              <td><span class="cell-score cell-score--high">7</span></td>
+              <td>8</td>
+              <td><span class="cell-unassigned">5</span></td>
+              <td><span class="badge badge--high">54%</span></td>
+              <td class="cell-muted">1 hr ago</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="cell-name">Priya Raman, RN</div>
+                <div class="cell-sub">Post-Discharge Team B</div>
+              </td>
+              <td>
+                <strong>11</strong>
+                <div class="capacity-bar"><div class="capacity-bar__fill capacity-bar__fill--ok" style="width:73%"></div></div>
+                <div class="capacity-label">Within capacity (15)</div>
+              </td>
+              <td><span class="cell-score cell-score--medium">4</span></td>
+              <td>12</td>
+              <td><span class="cell-muted">0</span></td>
+              <td><span class="badge badge--low">88%</span></td>
+              <td class="cell-muted">7 min ago</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="cell-name">Gerald Okafor, LCSW</div>
+                <div class="cell-sub">Social Work · Complex Cases</div>
+              </td>
+              <td>
+                <strong>9</strong>
+                <div class="capacity-bar"><div class="capacity-bar__fill capacity-bar__fill--ok" style="width:60%"></div></div>
+                <div class="capacity-label">Within capacity (15)</div>
+              </td>
+              <td><span class="cell-score cell-score--medium">4</span></td>
+              <td>0</td>
+              <td><span class="cell-unassigned">3</span></td>
+              <td><span class="badge badge--neutral">—</span></td>
+              <td class="cell-muted">PTO today</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── TREND + BREAKDOWN ──────────────────────────── -->
+    <div class="row" style="gap: var(--space-6); align-items: stretch;">
+
+      <div class="panel" style="flex:1; margin-bottom:0;">
+        <div class="panel__head">
+          <div>
+            <div class="panel__title">Contact Rate Within 48 Hours</div>
+            <div class="panel__sub">Last 14 days · target 80%</div>
+          </div>
+        </div>
+        <div class="panel__body">
+          <div class="mini-chart">
+            <div class="mini-chart__bar" style="height:78%"></div>
+            <div class="mini-chart__bar" style="height:82%"></div>
+            <div class="mini-chart__bar" style="height:85%"></div>
+            <div class="mini-chart__bar" style="height:80%"></div>
+            <div class="mini-chart__bar" style="height:76%"></div>
+            <div class="mini-chart__bar" style="height:88%"></div>
+            <div class="mini-chart__bar" style="height:84%"></div>
+            <div class="mini-chart__bar" style="height:79%"></div>
+            <div class="mini-chart__bar" style="height:81%"></div>
+            <div class="mini-chart__bar" style="height:75%"></div>
+            <div class="mini-chart__bar mini-chart__bar--alert" style="height:69%"></div>
+            <div class="mini-chart__bar mini-chart__bar--alert" style="height:66%"></div>
+            <div class="mini-chart__bar mini-chart__bar--alert" style="height:72%"></div>
+            <div class="mini-chart__bar mini-chart__bar--alert" style="height:71%"></div>
+          </div>
+          <div class="mini-chart__labels">
+            <span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+            <span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span>
+          </div>
+          <div class="alert alert--warning" style="margin-top: var(--space-5); margin-bottom:0;">
+            <span class="alert__icon">🟡</span>
+            <div>
+              <div class="alert__title">4-day decline below target</div>
+              <div class="alert__body">Correlates with Anthony Russo and Gerald Okafor reduced availability. Consider redistributing caseload.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="width: 340px; flex-shrink:0; margin-bottom:0;">
+        <div class="panel__head">
+          <div>
+            <div class="panel__title">Risk Distribution</div>
+            <div class="panel__sub">133 active patients</div>
+          </div>
+        </div>
+        <div class="panel__body">
+          <div class="stack">
+            <div>
+              <div class="row row--center" style="justify-content:space-between; margin-bottom:5px;">
+                <span class="badge badge--high">High Risk</span>
+                <strong>34</strong>
+              </div>
+              <div class="capacity-bar" style="width:100%;">
+                <div class="capacity-bar__fill capacity-bar__fill--over" style="width:26%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="row row--center" style="justify-content:space-between; margin-bottom:5px;">
+                <span class="badge badge--medium">Medium Risk</span>
+                <strong>52</strong>
+              </div>
+              <div class="capacity-bar" style="width:100%;">
+                <div class="capacity-bar__fill capacity-bar__fill--near" style="width:39%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="row row--center" style="justify-content:space-between; margin-bottom:5px;">
+                <span class="badge badge--low">Low Risk</span>
+                <strong>47</strong>
+              </div>
+              <div class="capacity-bar" style="width:100%;">
+                <div class="capacity-bar__fill capacity-bar__fill--ok" style="width:35%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="section-label">Top Diagnoses — High Risk</div>
+          <table style="width:100%; font-size:13px;">
+            <tr><td style="padding:4px 0;">CHF Exacerbation</td><td style="text-align:right;"><strong>11</strong></td></tr>
+            <tr><td style="padding:4px 0;">COPD</td><td style="text-align:right;"><strong>8</strong></td></tr>
+            <tr><td style="padding:4px 0;">Sepsis Recovery</td><td style="text-align:right;"><strong>6</strong></td></tr>
+            <tr><td style="padding:4px 0;">Diabetic Ketoacidosis</td><td style="text-align:right;"><strong>5</strong></td></tr>
+            <tr><td style="padding:4px 0;">Post-Op Cardiac</td><td style="text-align:right;"><strong>4</strong></td></tr>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── DATA RECONCILIATION HEALTH ─────────────────── -->
+    <div class="panel" style="margin-top: var(--space-6);">
+      <div class="panel__head">
+        <div>
+          <div class="panel__title">Data Reconciliation Health</div>
+          <div class="panel__sub">What this app is resolving between Epic and Salesforce right now</div>
+        </div>
+        <a href="#" class="prov-bar__cta">Full lineage report</a>
+      </div>
+      <div class="panel__body">
+
+        <div class="stat-row stat-row--4" style="margin-bottom: var(--space-5);">
+          <div class="stat-tile">
+            <div class="stat-tile__label">Patients Unified</div>
+            <div class="stat-tile__value">133</div>
+            <div class="stat-tile__sub">Epic + Salesforce records matched</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-tile__label">Conflicts Resolved</div>
+            <div class="stat-tile__value stat-tile__value--amber">41</div>
+            <div class="stat-tile__sub">auto-reconciled this week</div>
+          </div>
+          <div class="stat-tile stat-tile--alert">
+            <div class="stat-tile__label">Needs Manual Review</div>
+            <div class="stat-tile__value stat-tile__value--red">6</div>
+            <div class="stat-tile__sub">app could not resolve</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-tile__label">Would Have Been Missed</div>
+            <div class="stat-tile__value stat-tile__value--green">23</div>
+            <div class="stat-tile__sub">high-risk, only visible when joined</div>
+          </div>
+        </div>
+
+        <div class="alert alert--success" style="margin-bottom: var(--space-5);">
+          <span class="alert__icon">🟢</span>
+          <div>
+            <div class="alert__title">23 high-risk patients were invisible to either system alone</div>
+            <div class="alert__body">
+              These patients did not meet the high-risk threshold on Epic clinical factors alone,
+              nor on Salesforce engagement factors alone. They only surface when both are scored together —
+              which is the single clearest measure of what this layer adds.
+            </div>
+          </div>
+        </div>
+
+        <div class="section-label">Common conflict types this week</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Conflict Type</th>
+              <th>Epic Says</th>
+              <th>Salesforce Says</th>
+              <th>Resolution Rule</th>
+              <th>Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="cell-name">Discharge status mismatch</div></td>
+              <td><span class="src src--epic">Epic</span> Discharged</td>
+              <td><span class="src src--sfdc">SFDC</span> Case still open</td>
+              <td class="cell-muted">Epic wins — clinical source of truth</td>
+              <td><strong>17</strong></td>
+            </tr>
+            <tr>
+              <td><div class="cell-name">Contact number differs</div></td>
+              <td><span class="src src--epic">Epic</span> Registration phone</td>
+              <td><span class="src src--sfdc">SFDC</span> Last-responded phone</td>
+              <td class="cell-muted">Salesforce wins — verified more recently</td>
+              <td><strong>12</strong></td>
+            </tr>
+            <tr>
+              <td><div class="cell-name">Follow-up appointment</div></td>
+              <td><span class="src src--epic">Epic</span> Scheduled</td>
+              <td><span class="src src--sfdc">SFDC</span> No record</td>
+              <td class="cell-muted">Epic wins — scheduling system of record</td>
+              <td><strong>8</strong></td>
+            </tr>
+            <tr>
+              <td><div class="cell-name">Duplicate patient record</div></td>
+              <td><span class="src src--epic">Epic</span> Single MRN</td>
+              <td><span class="src src--sfdc">SFDC</span> Two contact records</td>
+              <td class="cell-unassigned">Unresolved — needs manual merge</td>
+              <td><strong>6</strong></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="alert alert--warning" style="margin-top: var(--space-5); margin-bottom: 0;">
+          <span class="alert__icon">🟡</span>
+          <div>
+            <div class="alert__title">Epic sync running 4h 12m behind</div>
+            <div class="alert__body">
+              Clinical fields — diagnosis, discharge date, medications — may be stale.
+              Engagement fields from Salesforce are live. Risk scores recomputed at last sync.
+            </div>
+          </div>
+          <div class="alert__action"><button class="btn btn--secondary btn--sm">Request Resync</button></div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<button class="demo-reset" id="demoReset">↺ Reset demo</button>
+
+<script src="js/session.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var assignList = document.getElementById('assignList');
+  var feed       = document.getElementById('activityFeed');
+  var msgTo      = document.getElementById('msgTo');
+  var msgPatient = document.getElementById('msgPatient');
+  var msgBody    = document.getElementById('msgBody');
+  var msgPriority= document.getElementById('msgPriority');
+  var unassignedBadge = document.querySelector('.side-nav__badge--alert');
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  function coordOptions(selectedId) {
+    return UCM.COORDINATORS.map(function (c) {
+      var over = c.load > c.cap;
+      return '<option value="' + c.id + '"' + (c.id === selectedId ? ' selected' : '') + '>' +
+             esc(c.short) + ' (' + c.load + ')' + (over ? ' — over' : '') + (c.away ? ' — PTO' : '') +
+             '</option>';
+    }).join('');
+  }
+
+  /* ─── Needs Assignment list ─────────────────────── */
+  function renderAssign() {
+    var pool = UCM.unassigned();
+
+    if (unassignedBadge) unassignedBadge.textContent = pool.length;
+    var tile = document.querySelector('.stat-tile--alert .stat-tile__value');
+    if (tile) tile.textContent = pool.length;
+
+    if (!pool.length) {
+      assignList.innerHTML =
+        '<div style="padding:var(--space-8);text-align:center;">' +
+          '<div style="font-size:28px;margin-bottom:var(--space-3);">✓</div>' +
+          '<div style="font-weight:700;color:var(--risk-low-text);margin-bottom:4px;">' +
+            'Every high-risk patient has an owner</div>' +
+          '<div class="muted">No unassigned patients past the 24-hour threshold.</div>' +
+        '</div>';
+      return;
+    }
+
+    assignList.innerHTML = pool.map(function (p) {
+      return '' +
+      '<div class="assign-row" data-pt="' + p.id + '">' +
+        '<span class="badge badge--high">' + p.score + '</span>' +
+        '<div class="assign-row__info">' +
+          '<div class="assign-row__name">' + esc(p.name) + '</div>' +
+          '<div class="assign-row__meta">MRN ' + p.mrn + ' · ' + p.age + p.sex + ' · ' +
+            esc(p.dx) + ' · Discharged ' + p.hoursSince + ' hours ago · Never contacted</div>' +
+        '</div>' +
+        '<div class="assign-row__controls">' +
+          '<select class="select select--sm" style="width:auto;" data-role="who">' +
+            coordOptions('sarah') +
+          '</select>' +
+          '<button class="btn btn--primary btn--sm" data-role="go">Assign</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  assignList.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-role="go"]');
+    if (!btn) return;
+    var row = btn.closest('.assign-row');
+    var ptId = row.getAttribute('data-pt');
+    var coordId = row.querySelector('[data-role="who"]').value;
+    var co = UCM.coordinator(coordId);
+
+    var pt = UCM.assign(ptId, coordId, { priority: true });
+    if (!pt) return;
+
+    UCM.toast('Assigned to ' + co.short,
+      pt.name + ' is now in ' + co.short.split(' ')[0] + "'s queue. They've been notified.",
+      'assign');
+  });
+
+  /* ─── Message composer ──────────────────────────── */
+  function renderComposer() {
+    var keepTo = msgTo.value;
+    msgTo.innerHTML = coordOptions(keepTo || 'sarah');
+
+    var keepPt = msgPatient.value;
+    var all = UCM.getState().pool;
+    msgPatient.innerHTML = '<option value="">— None —</option>' + all.map(function (p) {
+      var who = p.assignedTo ? UCM.coordinator(p.assignedTo) : null;
+      return '<option value="' + p.id + '"' + (p.id === keepPt ? ' selected' : '') + '>' +
+        esc(p.name) + ' · ' + esc(p.dx) +
+        (who ? ' (' + esc(who.short) + ')' : ' (unassigned)') + '</option>';
+    }).join('');
+  }
+
+  document.getElementById('msgSend').addEventListener('click', function () {
+    var body = msgBody.value.trim();
+    if (!body) { msgBody.focus(); return; }
+    var coordId = msgTo.value;
+    var ptId = msgPatient.value || null;
+    var ptName = null;
+    if (ptId) {
+      UCM.getState().pool.forEach(function (p) { if (p.id === ptId) ptName = p.name; });
+    }
+    UCM.message(coordId, body, {
+      priority: msgPriority.checked,
+      patientId: ptId,
+      patientName: ptName
+    });
+    msgBody.value = '';
+    msgPriority.checked = false;
+    UCM.toast('Message sent', 'Delivered to ' + UCM.coordinator(coordId).short + '.', 'ok');
+  });
+
+  /* ─── Activity feed ─────────────────────────────── */
+  function feedDotClass(verb) {
+    if (verb === 'assigned' || verb === 'unassigned') return 'feed__dot--assign';
+    if (verb === 'logged call') return 'feed__dot--call';
+    if (verb === 'messaged') return 'feed__dot--msg';
+    return '';
+  }
+  function feedIcon(verb) {
+    return { 'assigned': '👤', 'unassigned': '↩', 'logged call': '📞',
+             'messaged': '💬', 'acknowledged': '✓' }[verb] || '•';
+  }
+
+  function renderFeed() {
+    var items = UCM.activity();
+    if (!items.length) {
+      feed.innerHTML = '<div class="feed__empty">No activity yet this session.<br />' +
+        'Assign a patient or send a message to see it here.</div>';
+      return;
+    }
+    feed.innerHTML = items.map(function (a) {
+      return '' +
+      '<div class="feed__item">' +
+        '<div class="feed__dot ' + feedDotClass(a.verb) + '">' + feedIcon(a.verb) + '</div>' +
+        '<div class="feed__text"><strong>' + esc(a.actorName) + '</strong> ' +
+          esc(a.verb) + ' ' + esc(a.detail) + '</div>' +
+        '<div class="feed__time">' + UCM.relTime(a.ts) + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  /* ─── Wire up ───────────────────────────────────── */
+  function renderAll() { renderAssign(); renderComposer(); renderFeed(); }
+
+  UCM.subscribe(function (state, evt) {
+    renderAll();
+    // Surface coordinator actions coming from the other tab
+    if (evt && evt.remote && evt.type === 'sync') return;
+    if (evt && evt.type === 'call') {
+      UCM.toast('Call logged', 'A coordinator just logged an outcome.', 'ok');
+    }
+  });
+
+  // Cross-tab: coordinator actions arrive via storage event
+  window.addEventListener('storage', function () { renderAll(); });
+
+  document.getElementById('demoReset').addEventListener('click', function () {
+    UCM.reset();
+    UCM.toast('Demo reset', 'Session state cleared.', 'info');
+  });
+
+  setInterval(renderFeed, 30000); // keep relative timestamps honest
+  renderAll();
+})();
+</script>
+
+</body>
+</html>

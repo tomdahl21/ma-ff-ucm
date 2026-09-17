@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Executive Overview — UCM Care Coordination</title>
+  <link rel="stylesheet" href="css/app.css" />
+  <style>
+    .app-bar { background: var(--gray-900); }
+    .side-nav__item.active {
+      background: var(--gray-100); color: var(--gray-900); border-left-color: var(--gray-900);
+    }
+    .side-nav__badge { background: var(--gray-700); }
+
+    .hero-stat {
+      background: linear-gradient(135deg, #820B25 0%, #5C0819 100%);
+      border-radius: var(--radius-lg);
+      padding: var(--space-8);
+      color: var(--white);
+      margin-bottom: var(--space-6);
+      display: flex;
+      align-items: center;
+      gap: var(--space-10);
+      flex-wrap: wrap;
+      box-shadow: var(--shadow-md);
+    }
+    .hero-stat__main { flex-shrink: 0; }
+    .hero-stat__label {
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; opacity: 0.7;
+    }
+    .hero-stat__value { font-size: 64px; font-weight: 800; line-height: 1; margin: var(--space-2) 0; }
+    .hero-stat__delta {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.18);
+      padding: 5px 14px; border-radius: var(--radius-pill);
+      font-size: 13px; font-weight: 700;
+    }
+    .hero-stat__narrative {
+      flex: 1; min-width: 280px;
+      font-family: var(--font-serif);
+      font-size: 18px; font-style: italic;
+      line-height: 1.6; opacity: 0.95;
+      border-left: 2px solid rgba(255,255,255,0.3);
+      padding-left: var(--space-6);
+    }
+
+    /* ── LINE CHART ──────────────────────────── */
+    .chart-wrap { position: relative; padding: var(--space-4) 0 0; }
+    .chart-svg { width: 100%; height: 220px; display: block; overflow: visible; }
+    .chart-xaxis {
+      display: flex; margin-top: var(--space-2);
+      padding: 0 4px;
+    }
+    .chart-xaxis span { flex: 1; text-align: center; font-size: 10px; color: var(--gray-500); }
+    .chart-legend {
+      display: flex; gap: var(--space-5); margin-top: var(--space-4);
+      padding-top: var(--space-4); border-top: 1px solid var(--gray-100);
+    }
+    .chart-legend__item { display: flex; align-items: center; gap: var(--space-2); font-size: 12px; color: var(--gray-700); }
+    .chart-legend__swatch { width: 14px; height: 3px; border-radius: 2px; }
+
+    /* ── JOURNEY ─────────────────────────────── */
+    .journey {
+      display: flex; align-items: stretch; gap: 0;
+      overflow-x: auto; padding: var(--space-2) 0;
+    }
+    .journey-step {
+      flex: 1; min-width: 165px;
+      display: flex; flex-direction: column;
+      position: relative; padding: 0 var(--space-3);
+    }
+    .journey-step::after {
+      content: ''; position: absolute;
+      top: 19px; right: -12px; width: 24px; height: 2px;
+      background: var(--border); z-index: 0;
+    }
+    .journey-step:last-child::after { display: none; }
+    .journey-step__dot {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; margin-bottom: var(--space-3);
+      z-index: 1; background: var(--white);
+      border: 2px solid var(--border);
+    }
+    .journey-step__dot--risk    { background: var(--risk-high-bg);   border-color: var(--risk-high-dot); }
+    .journey-step__dot--system  { background: #E3F2FD;               border-color: var(--info); }
+    .journey-step__dot--human   { background: var(--ucm-maroon-tint); border-color: var(--ucm-maroon); }
+    .journey-step__dot--success { background: var(--risk-low-bg);    border-color: var(--risk-low-dot); }
+    .journey-step__time {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.8px;
+      text-transform: uppercase; color: var(--gray-500); margin-bottom: 3px;
+    }
+    .journey-step__title { font-size: 13px; font-weight: 700; line-height: 1.3; margin-bottom: 4px; }
+    .journey-step__desc  { font-size: 11px; color: var(--gray-700); line-height: 1.45; }
+    .journey-step .src { margin-top: var(--space-2); width: fit-content; }
+    .journey-risk {
+      margin-top: var(--space-2); font-size: 11px; font-weight: 800;
+    }
+    .journey-risk--high { color: var(--risk-high-text); }
+    .journey-risk--mid  { color: var(--risk-medium-text); }
+    .journey-risk--low  { color: var(--risk-low-text); }
+
+    /* ── SYSTEM CONTRIBUTION ─────────────────── */
+    .contrib-row {
+      display: flex; align-items: center; gap: var(--space-4);
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .contrib-row:last-child { border-bottom: none; }
+    .contrib-row__name { width: 150px; flex-shrink: 0; font-size: 13px; font-weight: 600; }
+    .contrib-row__bar-wrap { flex: 1; height: 22px; background: var(--gray-100); border-radius: var(--radius-sm); overflow: hidden; }
+    .contrib-row__bar {
+      height: 100%; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: flex-end;
+      padding-right: var(--space-2); color: white;
+      font-size: 11px; font-weight: 700;
+    }
+    .contrib-row__value {
+      width: 104px; flex-shrink: 0; font-size: 13px; color: var(--gray-500);
+      display: flex; justify-content: flex-end;
+    }
+
+    .insight-card {
+      background: var(--ucm-maroon-tint);
+      border-left: 4px solid var(--ucm-maroon);
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      padding: var(--space-5);
+      margin-top: var(--space-5);
+    }
+    .insight-card__label {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+      text-transform: uppercase; color: var(--ucm-maroon); margin-bottom: var(--space-2);
+    }
+    .insight-card__text {
+      font-family: var(--font-serif); font-size: 16px; font-style: italic;
+      color: var(--ucm-maroon-dark); line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── APP BAR ─────────────────────────────────────────── -->
+<div class="app-bar">
+  <a href="index.html" class="app-bar__brand">
+    <img class="app-bar__logo" src="img/uchicago-medicine-logo-vector.svg" alt="UChicago Medicine" />
+    <span class="app-bar__divider">|</span>
+    Care Coordination · Executive
+  </a>
+  <div class="app-bar__right">
+    <a href="index.html" class="app-bar__switch">Switch Role</a>
+    <div class="app-bar__user">
+      <div class="app-bar__user-meta">
+        <div class="app-bar__user-name">Dr. David Reyes</div>
+        <div class="app-bar__user-role">Chief Medical Officer</div>
+      </div>
+      <div class="avatar">DR</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── PROVENANCE BAR ──────────────────────────────────── -->
+<div class="prov-bar">
+  <span class="prov-bar__label">Data Sources</span>
+
+  <div class="prov-node">
+    <span class="prov-node__dot prov-node__dot--live"></span>
+    <span class="prov-node__name">Epic EHR</span>
+    <span class="prov-node__meta">clinical outcomes</span>
+  </div>
+  <span class="prov-bar__flow">→</span>
+
+  <div class="prov-node">
+    <span class="prov-node__dot prov-node__dot--live"></span>
+    <span class="prov-node__name">Data Cloud</span>
+    <span class="prov-node__meta">unified patient profiles</span>
+  </div>
+  <span class="prov-bar__flow">→</span>
+
+  <div class="prov-node">
+    <span class="prov-node__dot prov-node__dot--live"></span>
+    <span class="prov-node__name">Health Cloud</span>
+    <span class="prov-node__meta">engagement activity</span>
+  </div>
+  <span class="prov-bar__flow">·</span>
+
+  <div class="prov-node">
+    <span class="prov-node__dot prov-node__dot--live"></span>
+    <span class="prov-node__name">Marketing Cloud</span>
+    <span class="prov-node__meta">outbound channels</span>
+  </div>
+
+  <div class="prov-bar__spacer"></div>
+  <span class="prov-node__meta">Reporting period: Oct 2025 – Sep 2026</span>
+</div>
+
+<div class="shell">
+
+  <!-- ── SIDE NAV ──────────────────────────────────────── -->
+  <nav class="side-nav">
+    <div class="side-nav__group-label">Overview</div>
+    <a class="side-nav__item active" href="#"><span class="side-nav__icon">📈</span> Impact Summary</a>
+    <a class="side-nav__item" href="#"><span class="side-nav__icon">🗺️</span> Patient Journeys</a>
+    <a class="side-nav__item" href="#"><span class="side-nav__icon">🔗</span> System Contribution</a>
+    <div class="side-nav__group-label">Reporting</div>
+    <a class="side-nav__item" href="#"><span class="side-nav__icon">📊</span> Unit Breakdown</a>
+    <a class="side-nav__item" href="#"><span class="side-nav__icon">📄</span> Board Reports</a>
+    <div class="side-nav__group-label">Account</div>
+    <a class="side-nav__item" href="#"><span class="side-nav__icon">⚙️</span> Settings</a>
+  </nav>
+
+  <!-- ── MAIN ──────────────────────────────────────────── -->
+  <main class="main">
+
+    <div class="page-head">
+      <div>
+        <h1>Readmission Impact Overview</h1>
+        <div class="page-head__sub">Emergency Department · Rolling 12 months · Updated September 17, 2026</div>
+      </div>
+      <div class="page-head__actions">
+        <select class="select select--sm" style="width:auto;">
+          <option>All Units</option>
+          <option>Emergency Department</option>
+          <option>Cardiology</option>
+          <option>Pulmonary</option>
+        </select>
+        <button class="btn btn--secondary btn--sm">Download Board Deck</button>
+      </div>
+    </div>
+
+    <!-- ── HERO STAT ──────────────────────────────────── -->
+    <div class="hero-stat">
+      <div class="hero-stat__main">
+        <div class="hero-stat__label">30-Day Readmission Rate</div>
+        <div class="hero-stat__value">18.4%</div>
+        <div class="hero-stat__delta">▼ 3.1 pts since pilot launch</div>
+      </div>
+      <div class="hero-stat__narrative">
+        Since launching coordinated triage in March, UCM has avoided an estimated
+        <strong>214 preventable readmissions</strong> — representing roughly
+        <strong>$3.2M</strong> in avoided cost and, more importantly,
+        214 patients who stayed home instead of returning to our Emergency Department.
+      </div>
+    </div>
+
+    <!-- ── WHAT CHANGED ARCHITECTURALLY ───────────────── -->
+    <div class="panel">
+      <div class="panel__head">
+        <div>
+          <div class="panel__title">What Actually Changed</div>
+          <div class="panel__sub">No system was replaced. No integration was rebuilt. The data was joined at the point of decision.</div>
+        </div>
+      </div>
+      <div class="panel__body">
+        <div class="arch">
+
+          <!-- BEFORE -->
+          <div class="arch__panel arch__panel--before">
+            <div class="arch__panel-label">Before — Two Systems, No Bridge</div>
+
+            <div class="arch__silo arch__silo--epic">
+              <div class="arch__silo-name" style="color:var(--sys-epic);">Epic EHR</div>
+              <div class="arch__silo-desc">
+                Knows who was discharged, their diagnosis,
+                their medications, their prior admissions.
+                Does not know if anyone called them.
+              </div>
+            </div>
+
+            <div class="arch__break">✕ &nbsp;no shared view &nbsp;✕</div>
+
+            <div class="arch__silo arch__silo--sfdc">
+              <div class="arch__silo-name" style="color:var(--sys-sfdc);">Salesforce</div>
+              <div class="arch__silo-desc">
+                Knows who was called, who opted into SMS,
+                who has a coordinator assigned.
+                Does not know who is clinically at risk.
+              </div>
+            </div>
+
+            <div style="margin-top:var(--space-4);padding-top:var(--space-4);border-top:1px solid var(--border);font-size:11px;color:var(--gray-500);line-height:1.6;">
+              Coordinators reconciled the two by hand — reading an Epic discharge
+              report on one screen, searching Salesforce on another. Prioritization
+              was memory and guesswork.
+            </div>
+          </div>
+
+          <div class="arch__arrow">→</div>
+
+          <!-- AFTER -->
+          <div class="arch__panel arch__panel--after">
+            <div class="arch__panel-label">After — Joined at the Point of Decision</div>
+
+            <div class="arch__silo arch__silo--epic">
+              <div class="arch__silo-name" style="color:var(--sys-epic);">Epic EHR</div>
+              <div class="arch__silo-desc">Unchanged. Still clinical source of truth.</div>
+            </div>
+
+            <div style="text-align:center;color:var(--gray-300);font-size:15px;">↓ &nbsp; ↓</div>
+
+            <div class="arch__silo arch__silo--sfdc">
+              <div class="arch__silo-name" style="color:var(--sys-sfdc);">Salesforce Data Cloud</div>
+              <div class="arch__silo-desc">Unchanged. Still engagement source of truth.</div>
+            </div>
+
+            <div style="text-align:center;color:var(--ucm-maroon);font-size:15px;">↓</div>
+
+            <div class="arch__hub">
+              <div class="arch__hub-name">Care Coordination Layer</div>
+              <div class="arch__hub-desc">
+                Reads both · resolves conflicts · scores risk ·
+                routes to the right coordinator
+              </div>
+            </div>
+
+            <div style="margin-top:var(--space-4);padding-top:var(--space-4);border-top:1px solid #E8C8CE;font-size:11px;color:var(--ucm-maroon-dark);line-height:1.6;">
+              One prioritized list. Every value carries its origin. Conflicts between
+              the systems are resolved by explicit rule and shown to the coordinator —
+              not hidden.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="insight-card">
+          <div class="insight-card__label">Why this matters strategically</div>
+          <div class="insight-card__text">
+            We did not have to win the Epic-versus-Salesforce argument to make progress.
+            Both systems keep their territory. The orchestration layer sits above them and
+            is the only place that needs to understand both — which means this approach
+            is replicable for any other cross-system problem we face.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── KPI ROW ────────────────────────────────────── -->
+    <div class="stat-row stat-row--4">
+      <div class="stat-tile">
+        <div class="stat-tile__label">Readmissions Avoided</div>
+        <div class="stat-tile__value stat-tile__value--green">214</div>
+        <div class="stat-tile__sub">vs. pre-pilot baseline</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-tile__label">Est. Cost Avoided</div>
+        <div class="stat-tile__value">$3.2M</div>
+        <div class="stat-tile__sub">at $15K avg. per readmission</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-tile__label">High-Risk Contact Rate</div>
+        <div class="stat-tile__value stat-tile__value--amber">71%</div>
+        <div class="stat-tile__sub">within 48h · target 80%</div>
+        <div class="stat-tile__delta stat-tile__delta--down">▼ 4% this week</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-tile__label">Patients Under Management</div>
+        <div class="stat-tile__value">133</div>
+        <div class="stat-tile__sub">active post-discharge</div>
+      </div>
+    </div>
+
+    <!-- ── TREND CHART ────────────────────────────────── -->
+    <div class="panel">
+      <div class="panel__head">
+        <div>
+          <div class="panel__title">30-Day Readmission Rate — Trend</div>
+          <div class="panel__sub">Pilot launched March 2026 · compared against prior-year baseline</div>
+        </div>
+        <div class="chip-row">
+          <span class="chip active">12 Months</span>
+          <span class="chip">6 Months</span>
+          <span class="chip">YTD</span>
+        </div>
+      </div>
+      <div class="panel__body">
+        <div class="chart-wrap">
+          <svg class="chart-svg" viewBox="0 0 780 220" preserveAspectRatio="none">
+            <!-- gridlines -->
+            <line x1="0" y1="20"  x2="780" y2="20"  stroke="#F2F2F2" stroke-width="1"/>
+            <line x1="0" y1="70"  x2="780" y2="70"  stroke="#F2F2F2" stroke-width="1"/>
+            <line x1="0" y1="120" x2="780" y2="120" stroke="#F2F2F2" stroke-width="1"/>
+            <line x1="0" y1="170" x2="780" y2="170" stroke="#F2F2F2" stroke-width="1"/>
+            <line x1="0" y1="200" x2="780" y2="200" stroke="#E0E0E0" stroke-width="1"/>
+
+            <!-- pilot launch marker -->
+            <line x1="325" y1="0" x2="325" y2="200" stroke="#C4C4C4" stroke-width="1.5" stroke-dasharray="4 4"/>
+            <text x="332" y="14" font-size="10" fill="#717171" font-family="system-ui">Pilot launch</text>
+
+            <!-- baseline (prior year) — flat dashed grey -->
+            <polyline
+              points="0,42 65,38 130,45 195,40 260,44 325,41 390,43 455,39 520,45 585,42 650,40 715,44 780,41"
+              fill="none" stroke="#C4C4C4" stroke-width="2" stroke-dasharray="5 4"/>
+
+            <!-- actual — maroon, declining after pilot -->
+            <polyline
+              points="0,45 65,41 130,48 195,43 260,46 325,44 390,62 455,78 520,95 585,110 650,122 715,131 780,138"
+              fill="none" stroke="#820B25" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- area fill under actual -->
+            <polygon
+              points="325,44 390,62 455,78 520,95 585,110 650,122 715,131 780,138 780,200 325,200"
+              fill="#820B25" opacity="0.07"/>
+
+            <!-- data points -->
+            <circle cx="325" cy="44"  r="4" fill="#820B25"/>
+            <circle cx="520" cy="95"  r="4" fill="#820B25"/>
+            <circle cx="780" cy="138" r="5" fill="#820B25" stroke="#fff" stroke-width="2"/>
+          </svg>
+
+          <div class="chart-xaxis">
+            <span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span>
+            <span>Feb</span><span>Mar</span><span>Apr</span><span>May</span>
+            <span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span>
+          </div>
+
+          <div class="chart-legend">
+            <div class="chart-legend__item">
+              <div class="chart-legend__swatch" style="background:#820B25;"></div>
+              Actual — with coordinated triage
+            </div>
+            <div class="chart-legend__item">
+              <div class="chart-legend__swatch" style="background:#C4C4C4;"></div>
+              Prior-year baseline
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-card">
+          <div class="insight-card__label">What changed</div>
+          <div class="insight-card__text">
+            The inflection point is March — when coordinators gained a single prioritized view
+            instead of reconciling Epic discharge reports against Salesforce by hand.
+            The data didn't change. The ability to act on it did.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PATIENT JOURNEY ────────────────────────────── -->
+    <div class="panel">
+      <div class="panel__head">
+        <div>
+          <div class="panel__title">Traced Patient Journey</div>
+          <div class="panel__sub">Anonymized · 67M, CHF exacerbation · demonstrates cross-system orchestration</div>
+        </div>
+        <span class="badge badge--low">Avoided Readmission</span>
+      </div>
+      <div class="panel__body">
+        <div class="journey">
+
+          <div class="journey-step">
+            <div class="journey-step__dot journey-step__dot--risk">🏥</div>
+            <div class="journey-step__time">Day 0 · 11:42 PM</div>
+            <div class="journey-step__title">ED Admission</div>
+            <div class="journey-step__desc">Presents with shortness of breath. CHF exacerbation confirmed.</div>
+            <span class="src src--epic">Epic</span>
+            <div class="journey-risk journey-risk--high">Risk: —</div>
+          </div>
+
+          <div class="journey-step">
+            <div class="journey-step__dot journey-step__dot--system">⚡</div>
+            <div class="journey-step__time">Day 3 · 9:15 AM</div>
+            <div class="journey-step__title">Discharge + Auto Risk Score</div>
+            <div class="journey-step__desc">Data Cloud computes score from 2 prior readmits, no PCP follow-up, lives alone.</div>
+            <span class="src src--sfdc">Data Cloud</span>
+            <div class="journey-risk journey-risk--high">Risk: 88 High</div>
+          </div>
+
+          <div class="journey-step">
+            <div class="journey-step__dot journey-step__dot--system">🤖</div>
+            <div class="journey-step__time">Day 3 · 9:16 AM</div>
+            <div class="journey-step__title">Actions Generated</div>
+            <div class="journey-step__desc">Agentforce surfaces 3 prioritized next best actions and routes to queue.</div>
+            <span class="src src--agent">Agentforce</span>
+            <div class="journey-risk journey-risk--high">Risk: 88 High</div>
+          </div>
+
+          <div class="journey-step">
+            <div class="journey-step__dot journey-step__dot--human">📞</div>
+            <div class="journey-step__time">Day 4 · 10:30 AM</div>
+            <div class="journey-step__title">Coordinator Call</div>
+            <div class="journey-step__desc">Reached patient. Discovers transportation barrier — no ride to pharmacy.</div>
+            <span class="src src--sfdc">Health Cloud</span>
+            <div class="journey-risk journey-risk--high">Risk: 88 High</div>
+          </div>
+
+          <div class="journey-step">
+            <div class="journey-step__dot journey-step__dot--human">🚐</div>
+            <div class="journey-step__time">Day 4 · 11:00 AM</div>
+            <div class="journey-step__title">Barrier Resolved</div>
+            <div class="journey-step__desc">Patient transport arranged. Rx delivery scheduled same day.</div>
+            <span class="src src--sfdc">Health Cloud</span>
+            <div class="journey-risk journey-risk--mid">Risk: 64 Medium</div>
+          </div>
+
+          <div class="journey-step">
+            <div class="journey-step__dot journey-step__dot--system">💬</div>
+            <div class="journey-step__time">Day 6 · 9:00 AM</div>
+            <div class="journey-step__title">Automated Check-In</div>
+            <div class="journey-step__desc">SMS confirms medication adherence. Patient replies "yes."</div>
+            <span class="src src--mc">Marketing Cloud</span>
+            <div class="journey-risk journey-risk--mid">Risk: 51 Medium</div>
+          </div>
+
+          <div class="journey-step">
+            <div class="journey-step__dot journey-step__dot--success">✓</div>
+            <div class="journey-step__time">Day 9 · 2:00 PM</div>
+            <div class="journey-step__title">PCP Follow-Up Held</div>
+            <div class="journey-step__desc">Attended cardiology follow-up. No readmission at 30 days.</div>
+            <span class="src src--epic">Epic</span>
+            <div class="journey-risk journey-risk--low">Risk: 24 Low</div>
+          </div>
+
+        </div>
+
+        <div class="insight-card">
+          <div class="insight-card__label">The decisive moment</div>
+          <div class="insight-card__text">
+            Day 4, 10:30 AM. The risk score didn't prevent this readmission — a coordinator asking
+            the right question did. She only got to ask it because the system told her to call
+            this patient first, out of eighteen.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SYSTEM CONTRIBUTION ────────────────────────── -->
+    <div class="row" style="gap: var(--space-6); align-items: stretch;">
+
+      <div class="panel" style="flex: 1; margin-bottom: 0;">
+        <div class="panel__head">
+          <div>
+            <div class="panel__title">Engagement by Source System</div>
+            <div class="panel__sub">All patient touchpoints · last 30 days</div>
+          </div>
+        </div>
+        <div class="panel__body">
+          <div class="contrib-row">
+            <div class="contrib-row__name">Coordinator Calls</div>
+            <div class="contrib-row__bar-wrap">
+              <div class="contrib-row__bar" style="width:78%; background:var(--sys-sfdc);">1,284</div>
+            </div>
+            <div class="contrib-row__value"><span class="src src--sfdc">Health Cloud</span></div>
+          </div>
+          <div class="contrib-row">
+            <div class="contrib-row__name">Automated SMS</div>
+            <div class="contrib-row__bar-wrap">
+              <div class="contrib-row__bar" style="width:62%; background:var(--sys-mc);">1,021</div>
+            </div>
+            <div class="contrib-row__value"><span class="src src--mc">Mktg Cloud</span></div>
+          </div>
+          <div class="contrib-row">
+            <div class="contrib-row__name">Agentforce Deflection</div>
+            <div class="contrib-row__bar-wrap">
+              <div class="contrib-row__bar" style="width:44%; background:var(--sys-agent);">718</div>
+            </div>
+            <div class="contrib-row__value"><span class="src src--agent">Agentforce</span></div>
+          </div>
+          <div class="contrib-row">
+            <div class="contrib-row__name">MyChart Scheduling</div>
+            <div class="contrib-row__bar-wrap">
+              <div class="contrib-row__bar" style="width:29%; background:var(--sys-epic);">476</div>
+            </div>
+            <div class="contrib-row__value"><span class="src src--epic">Epic</span></div>
+          </div>
+          <div class="contrib-row">
+            <div class="contrib-row__name">Social Work Referral</div>
+            <div class="contrib-row__bar-wrap">
+              <div class="contrib-row__bar" style="width:14%; background:var(--sys-sfdc); opacity:0.6;">231</div>
+            </div>
+            <div class="contrib-row__value"><span class="src src--sfdc">Health Cloud</span></div>
+          </div>
+
+          <div class="alert alert--info" style="margin-top: var(--space-5); margin-bottom:0;">
+            <span class="alert__icon">🔵</span>
+            <div>
+              <div class="alert__title">Cross-system orchestration is working</div>
+              <div class="alert__body">
+                78% of high-risk patients now receive touchpoints from two or more systems.
+                Pre-pilot, that figure was 12% — most patients received a single call or nothing at all.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="width: 320px; flex-shrink: 0; margin-bottom: 0;">
+        <div class="panel__head">
+          <div class="panel__title">Readmission by Risk Tier</div>
+        </div>
+        <div class="panel__body">
+          <div class="stack">
+            <div>
+              <div class="row row--center" style="justify-content:space-between;margin-bottom:4px;">
+                <span class="badge badge--high">High Risk</span>
+                <strong style="color:var(--risk-high-text);">34.2%</strong>
+              </div>
+              <div class="muted" style="font-size:11px;">▼ from 47.1% pre-pilot</div>
+            </div>
+            <div>
+              <div class="row row--center" style="justify-content:space-between;margin-bottom:4px;">
+                <span class="badge badge--medium">Medium Risk</span>
+                <strong style="color:var(--risk-medium-text);">14.7%</strong>
+              </div>
+              <div class="muted" style="font-size:11px;">▼ from 19.3% pre-pilot</div>
+            </div>
+            <div>
+              <div class="row row--center" style="justify-content:space-between;margin-bottom:4px;">
+                <span class="badge badge--low">Low Risk</span>
+                <strong style="color:var(--risk-low-text);">4.1%</strong>
+              </div>
+              <div class="muted" style="font-size:11px;">▼ from 5.2% pre-pilot</div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="section-label">Where the gains came from</div>
+          <p class="text-sm" style="color:var(--gray-700);line-height:1.6;">
+            The largest absolute reduction is in the high-risk tier — precisely
+            the population coordinators were previously least able to prioritize.
+            This is the strongest available evidence that triage ordering,
+            not additional staffing, drove the improvement.
+          </p>
+
+          <div class="divider"></div>
+
+          <div class="section-label">Known Limitation</div>
+          <p class="text-sm" style="color:var(--gray-700);line-height:1.6;">
+            Social determinants data remains sparse. The risk model under-weights
+            housing instability and food insecurity — factors disproportionately
+            affecting our South Side patient population.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

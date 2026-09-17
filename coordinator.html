@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patient Triage Queue — UCM Care Coordination</title>
+  <link rel="stylesheet" href="css/app.css" />
+  <style>
+    .work-area { display: flex; gap: var(--space-6); align-items: flex-start; }
+    .queue-col { flex: 1; min-width: 0; }
+    .detail-col { width: 400px; flex-shrink: 0; position: sticky; top: 150px; }
+    @media (max-width: 1340px) {
+      .work-area { flex-direction: column; }
+      .detail-col { width: 100%; position: static; }
+    }
+    .score-ring {
+      width: 60px; height: 60px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 21px; font-weight: 800; flex-shrink: 0;
+    }
+    .score-ring--high   { background: var(--risk-high-bg);   color: var(--risk-high-text);   border: 3px solid var(--risk-high-dot); }
+    .score-ring--medium { background: var(--risk-medium-bg); color: var(--risk-medium-text); border: 3px solid var(--risk-medium-dot); }
+    .score-ring--low    { background: var(--risk-low-bg);    color: var(--risk-low-text);    border: 3px solid var(--risk-low-dot); }
+    .tab-row { display: flex; gap: 2px; border-bottom: 1px solid var(--border); padding: 0 var(--space-5); background: var(--white); }
+    .tab {
+      padding: var(--space-3) var(--space-4); font-size: 13px; font-weight: 600;
+      color: var(--gray-500); cursor: pointer; border-bottom: 2px solid transparent;
+      transition: all 0.12s; user-select: none;
+    }
+    .tab:hover { color: var(--gray-900); }
+    .tab.active { color: var(--ucm-maroon); border-bottom-color: var(--ucm-maroon); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .sync-bar {
+      display: flex; align-items: center; gap: var(--space-2);
+      font-size: 11px; color: var(--risk-medium-text);
+      background: var(--risk-medium-bg); padding: 6px var(--space-4);
+      border-radius: var(--radius-sm); margin-bottom: var(--space-4);
+    }
+    .score-math {
+      display: flex; align-items: center; justify-content: center;
+      gap: var(--space-3); flex-wrap: wrap;
+      background: var(--gray-100); border-radius: var(--radius-md);
+      padding: var(--space-4); margin-bottom: var(--space-4);
+    }
+    .score-math__part { text-align: center; }
+    .score-math__num { font-size: 20px; font-weight: 800; line-height: 1; }
+    .score-math__num--epic { color: var(--sys-epic); }
+    .score-math__num--sfdc { color: var(--sys-sfdc); }
+    .score-math__num--total { color: var(--ucm-maroon); font-size: 26px; }
+    .score-math__cap { font-size: 9px; color: var(--gray-500); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; }
+    .score-math__op { font-size: 17px; color: var(--gray-300); font-weight: 300; }
+  </style>
+</head>
+<body>
+
+<!-- ── APP BAR ─────────────────────────────────────────── -->
+<div class="app-bar">
+  <a href="index.html" class="app-bar__brand">
+    <img class="app-bar__logo" src="img/uchicago-medicine-logo-vector.svg" alt="UChicago Medicine" />
+    <span class="app-bar__divider">|</span>
+    Care Coordination
+  </a>
+  <div class="app-bar__right">
+    <a href="index.html" class="app-bar__switch">Switch Role</a>
+    <button class="bell" id="bell" aria-label="Notifications">
+      🔔<span class="bell__count" id="bellCount" hidden>0</span>
+    </button>
+    <div class="app-bar__user">
+      <div class="app-bar__user-meta">
+        <div class="app-bar__user-name">Sarah Lin, RN</div>
+        <div class="app-bar__user-role">Care Coordinator</div>
+      </div>
+      <div class="avatar">SL</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── INBOX ───────────────────────────────────────────── -->
+<div class="inbox" id="inbox">
+  <div class="inbox__head">
+    <div class="inbox__title">Inbox</div>
+    <button class="btn btn--ghost btn--sm" id="inboxReadAll">Mark all read</button>
+  </div>
+  <div class="inbox__list" id="inboxList"></div>
+</div>
+
+<!-- ── PROVENANCE BAR ──────────────────────────────────── -->
+<div class="prov-bar">
+  <span class="prov-bar__label">Connected Sources</span>
+
+  <div class="prov-node">
+    <span class="prov-node__dot prov-node__dot--lag"></span>
+    <span class="prov-node__name">Epic EHR</span>
+    <span class="prov-node__meta">synced 4h 12m ago</span>
+  </div>
+  <span class="prov-bar__flow">→</span>
+
+  <div class="prov-node">
+    <span class="prov-node__dot prov-node__dot--live"></span>
+    <span class="prov-node__name">Data Cloud</span>
+    <span class="prov-node__meta">risk scores · 22m ago</span>
+  </div>
+  <span class="prov-bar__flow">→</span>
+
+  <div class="prov-node">
+    <span class="prov-node__dot prov-node__dot--live"></span>
+    <span class="prov-node__name">Health Cloud</span>
+    <span class="prov-node__meta">live read/write</span>
+  </div>
+  <span class="prov-bar__flow">·</span>
+
+  <div class="prov-node">
+    <span class="prov-node__dot prov-node__dot--live"></span>
+    <span class="prov-node__name">Agentforce</span>
+    <span class="prov-node__meta">12 actions generated</span>
+  </div>
+
+  <div class="prov-bar__spacer"></div>
+  <a href="#" class="prov-bar__cta">View data lineage</a>
+</div>
+
+<div class="shell">
+
+  <!-- ── SIDE NAV ──────────────────────────────────────── -->
+  <nav class="side-nav">
+    <div class="side-nav__group-label">Triage</div>
+    <a class="side-nav__item active" href="#">
+      <span class="side-nav__icon">⚠️</span> My Patient Queue
+      <span class="side-nav__badge">18</span>
+    </a>
+    <a class="side-nav__item" href="#">
+      <span class="side-nav__icon">📞</span> Callbacks Due
+      <span class="side-nav__badge side-nav__badge--alert">4</span>
+    </a>
+    <a class="side-nav__item" href="#">
+      <span class="side-nav__icon">✓</span> Completed Today
+    </a>
+    <div class="side-nav__group-label">Tools</div>
+    <a class="side-nav__item" href="#"><span class="side-nav__icon">🔍</span> Patient Search</a>
+    <a class="side-nav__item" href="#"><span class="side-nav__icon">📋</span> Care Protocols</a>
+    <div class="side-nav__group-label">Account</div>
+    <a class="side-nav__item" href="#"><span class="side-nav__icon">⚙️</span> Settings</a>
+  </nav>
+
+  <!-- ── MAIN ──────────────────────────────────────────── -->
+  <main class="main">
+
+    <div class="page-head">
+      <div>
+        <h1>My Patient Queue</h1>
+        <div class="page-head__sub">18 patients assigned · sorted by readmission risk · Thursday, September 17</div>
+      </div>
+      <div class="page-head__actions">
+        <div class="search-field">
+          <span class="icon">🔍</span>
+          <input type="text" placeholder="Search by name or MRN…" />
+        </div>
+        <button class="btn btn--secondary btn--sm">Export</button>
+      </div>
+    </div>
+
+    <!-- Delegations from manager (session-driven) -->
+    <div id="delegHost"></div>
+
+    <!-- Priority alert -->
+    <div class="alert alert--error">
+      <span class="alert__icon">🔴</span>
+      <div>
+        <div class="alert__title">4 high-risk patients approaching the 48-hour window</div>
+        <div class="alert__body">Contact within the first 48 hours post-discharge is the strongest predictor of avoided readmission. These patients have not yet been reached.</div>
+      </div>
+      <div class="alert__action"><button class="btn btn--primary btn--sm">Show Only These</button></div>
+    </div>
+
+    <!-- Stat row -->
+    <div class="stat-row stat-row--4">
+      <div class="stat-tile">
+        <div class="stat-tile__label">High Risk</div>
+        <div class="stat-tile__value stat-tile__value--red">6</div>
+        <div class="stat-tile__sub">in my queue</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-tile__label">Medium Risk</div>
+        <div class="stat-tile__value stat-tile__value--amber">7</div>
+        <div class="stat-tile__sub">in my queue</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-tile__label">Low Risk</div>
+        <div class="stat-tile__value stat-tile__value--green">5</div>
+        <div class="stat-tile__sub">monitoring only</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-tile__label">Calls Logged Today</div>
+        <div class="stat-tile__value">9</div>
+        <div class="stat-tile__sub">of 13 planned</div>
+        <div class="stat-tile__delta stat-tile__delta--down">▲ 2 vs. daily average</div>
+      </div>
+    </div>
+
+    <div class="work-area">
+
+      <!-- ── QUEUE ─────────────────────────────────────── -->
+      <div class="queue-col">
+        <div class="panel">
+          <div class="panel__head">
+            <div>
+              <div class="panel__title">Patient Triage List</div>
+              <div class="panel__sub">Risk scores from Salesforce Data Cloud · updated 22 minutes ago</div>
+            </div>
+            <select class="select select--sm" style="width:auto;">
+              <option>Sort: Risk Score ↓</option>
+              <option>Sort: Days Since Discharge</option>
+              <option>Sort: Last Contact</option>
+            </select>
+          </div>
+
+          <div style="padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--border);">
+            <div class="chip-row">
+              <span class="chip active">All <span class="chip__count">18</span></span>
+              <span class="chip">High Risk <span class="chip__count">6</span></span>
+              <span class="chip">Uncontacted <span class="chip__count">4</span></span>
+              <span class="chip">No Follow-Up <span class="chip__count">7</span></span>
+              <span class="chip">Escalate Flagged <span class="chip__count">1</span></span>
+            </div>
+          </div>
+
+          <div class="panel__body panel__body--flush">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Patient <span class="src src--epic">Epic</span></th>
+                  <th>Risk</th>
+                  <th>Score <span class="src src--sfdc">Data Cloud</span></th>
+                  <th>Diagnosis <span class="src src--epic">Epic</span></th>
+                  <th>Discharged <span class="src src--epic">Epic</span></th>
+                  <th>Last Contact <span class="src src--sfdc">Salesforce</span></th>
+                  <th>Next Action <span class="src src--agent">Agentforce</span></th>
+                </tr>
+              </thead>
+              <tbody id="queueBody">
+                <tr class="row--high selected">
+                  <td><div class="cell-name">Darnell Washington</div><div class="cell-sub">MRN 4820193 · 67M</div></td>
+                  <td><span class="badge badge--high">High</span></td>
+                  <td><span class="cell-score cell-score--high">88</span></td>
+                  <td>CHF Exacerbation</td>
+                  <td>3 days ago</td>
+                  <td class="cell-unassigned">Never</td>
+                  <td class="cell-action">📞 Call today</td>
+                </tr>
+                <tr class="row--high">
+                  <td><div class="cell-name">Robert Osei</div><div class="cell-sub">MRN 7730021 · 72M</div></td>
+                  <td><span class="badge badge--high">High</span></td>
+                  <td><span class="cell-score cell-score--high">84</span></td>
+                  <td>Sepsis Recovery</td>
+                  <td>1 day ago</td>
+                  <td class="cell-unassigned">Never</td>
+                  <td class="cell-action">📞 Call today</td>
+                </tr>
+                <tr class="row--high">
+                  <td><div class="cell-name">Gloria Mensah</div><div class="cell-sub">MRN 2214870 · 79F</div></td>
+                  <td><span class="badge badge--high">High</span></td>
+                  <td><span class="cell-score cell-score--high">81</span></td>
+                  <td>COPD Exacerbation</td>
+                  <td>2 days ago</td>
+                  <td class="cell-muted">Voicemail · 1d ago</td>
+                  <td class="cell-action">📞 Retry call</td>
+                </tr>
+                <tr class="row--high">
+                  <td><div class="cell-name">Curtis Bell</div><div class="cell-sub">MRN 9081234 · 58M</div></td>
+                  <td><span class="badge badge--high">High</span></td>
+                  <td><span class="cell-score cell-score--high">77</span></td>
+                  <td>Diabetic Ketoacidosis</td>
+                  <td>4 days ago</td>
+                  <td class="cell-muted">Reached · 2d ago</td>
+                  <td class="cell-action">💊 Confirm Rx pickup</td>
+                </tr>
+                <tr class="row--medium">
+                  <td><div class="cell-name">Maria Okonkwo</div><div class="cell-sub">MRN 3310485 · 54F</div></td>
+                  <td><span class="badge badge--medium">Medium</span></td>
+                  <td><span class="cell-score cell-score--medium">62</span></td>
+                  <td>COPD</td>
+                  <td>7 days ago</td>
+                  <td class="cell-muted">Reached · 4d ago</td>
+                  <td class="cell-action">📅 Schedule follow-up</td>
+                </tr>
+                <tr class="row--medium">
+                  <td><div class="cell-name">Thomas Nguyen</div><div class="cell-sub">MRN 6612098 · 61M</div></td>
+                  <td><span class="badge badge--medium">Medium</span></td>
+                  <td><span class="cell-score cell-score--medium">58</span></td>
+                  <td>Post-Op Cardiac</td>
+                  <td>5 days ago</td>
+                  <td class="cell-muted">Reached · 3d ago</td>
+                  <td class="cell-action">💬 Send SMS check-in</td>
+                </tr>
+                <tr class="row--medium">
+                  <td><div class="cell-name">Yolanda Pierce</div><div class="cell-sub">MRN 4471102 · 48F</div></td>
+                  <td><span class="badge badge--medium">Medium</span></td>
+                  <td><span class="cell-score cell-score--medium">51</span></td>
+                  <td>Cellulitis</td>
+                  <td>6 days ago</td>
+                  <td class="cell-muted">Reached · 5d ago</td>
+                  <td class="cell-action">📅 Schedule follow-up</td>
+                </tr>
+                <tr class="row--low">
+                  <td><div class="cell-name">Angela Torres</div><div class="cell-sub">MRN 5540882 · 44F</div></td>
+                  <td><span class="badge badge--low">Low</span></td>
+                  <td><span class="cell-score cell-score--low">22</span></td>
+                  <td>Appendectomy</td>
+                  <td>5 days ago</td>
+                  <td class="cell-muted">Reached · 4d ago</td>
+                  <td class="cell-action">✓ Monitor only</td>
+                </tr>
+                <tr class="row--low">
+                  <td><div class="cell-name">Michael Adeyemi</div><div class="cell-sub">MRN 1129334 · 39M</div></td>
+                  <td><span class="badge badge--low">Low</span></td>
+                  <td><span class="cell-score cell-score--low">17</span></td>
+                  <td>Laceration Repair</td>
+                  <td>8 days ago</td>
+                  <td class="cell-muted">Reached · 7d ago</td>
+                  <td class="cell-action">✓ Monitor only</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DETAIL RAIL ───────────────────────────────── -->
+      <div class="detail-col">
+        <div class="panel">
+          <div class="detail-head">
+            <div class="row row--center" style="justify-content:space-between;">
+              <div>
+                <div class="detail-head__name">Darnell Washington</div>
+                <div class="detail-head__meta">MRN 4820193 · 67M · Discharged Sep 14</div>
+              </div>
+              <span class="badge badge--high">High Risk</span>
+            </div>
+            <div class="detail-score">
+              <div class="score-ring score-ring--high">88</div>
+              <div class="detail-score__meta">
+                <strong style="color:var(--gray-900);font-size:12px;">Readmission Risk Score</strong><br />
+                Source: Salesforce Data Cloud<br />
+                As of Sep 17, 9:42 AM · Model v2.3
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-row">
+            <div class="tab active">Actions</div>
+            <div class="tab">Timeline</div>
+            <div class="tab">Details</div>
+          </div>
+
+          <!-- TAB: ACTIONS -->
+          <div class="tab-panel active">
+            <div class="panel__body">
+
+              <div class="sync-bar">
+                <span>⚠️</span> Epic data last synced 4h 12m ago — scores may be stale
+              </div>
+
+              <div class="section-label">How this score is composed</div>
+              <div class="score-math">
+                <div class="score-math__part">
+                  <div class="score-math__num score-math__num--epic">51</div>
+                  <div class="score-math__cap">Clinical<br/>Epic</div>
+                </div>
+                <div class="score-math__op">+</div>
+                <div class="score-math__part">
+                  <div class="score-math__num score-math__num--sfdc">37</div>
+                  <div class="score-math__cap">Engagement<br/>Salesforce</div>
+                </div>
+                <div class="score-math__op">=</div>
+                <div class="score-math__part">
+                  <div class="score-math__num score-math__num--total">88</div>
+                  <div class="score-math__cap">Unified<br/>Risk Score</div>
+                </div>
+              </div>
+              <p class="muted" style="font-size:11px;line-height:1.5;margin-bottom:var(--space-5);">
+                Neither system can produce this score alone. Epic holds the clinical history;
+                Salesforce holds the engagement history. This score exists only because both are read together.
+              </p>
+
+              <div class="section-label">Contributing factors</div>
+              <div style="margin-bottom:var(--space-5);">
+                <div class="prov-factor">
+                  <span class="prov-factor__arrow prov-factor__arrow--up">▲</span>
+                  <div class="prov-factor__body">
+                    <div class="prov-factor__text">2 prior ED readmissions in last 90 days</div>
+                    <div class="prov-factor__foot">
+                      <span class="src src--epic">Epic</span>
+                      <span class="prov-factor__weight">+24 pts</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="prov-factor">
+                  <span class="prov-factor__arrow prov-factor__arrow--up">▲</span>
+                  <div class="prov-factor__body">
+                    <div class="prov-factor__text">CHF primary diagnosis with prior exacerbation</div>
+                    <div class="prov-factor__foot">
+                      <span class="src src--epic">Epic</span>
+                      <span class="prov-factor__weight">+18 pts</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="prov-factor">
+                  <span class="prov-factor__arrow prov-factor__arrow--up">▲</span>
+                  <div class="prov-factor__body">
+                    <div class="prov-factor__text">Furosemide refill not picked up — 4 days overdue</div>
+                    <div class="prov-factor__foot">
+                      <span class="src src--epic">Epic</span>
+                      <span class="prov-factor__weight">+9 pts</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="prov-factor">
+                  <span class="prov-factor__arrow prov-factor__arrow--up">▲</span>
+                  <div class="prov-factor__body">
+                    <div class="prov-factor__text">No PCP follow-up appointment scheduled</div>
+                    <div class="prov-factor__foot">
+                      <span class="src src--sfdc">Salesforce</span>
+                      <span class="prov-factor__weight">+16 pts</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="prov-factor">
+                  <span class="prov-factor__arrow prov-factor__arrow--up">▲</span>
+                  <div class="prov-factor__body">
+                    <div class="prov-factor__text">Zero engagement touchpoints since discharge</div>
+                    <div class="prov-factor__foot">
+                      <span class="src src--sfdc">Salesforce</span>
+                      <span class="prov-factor__weight">+14 pts</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="prov-factor">
+                  <span class="prov-factor__arrow prov-factor__arrow--up">▲</span>
+                  <div class="prov-factor__body">
+                    <div class="prov-factor__text">Lives alone — no caregiver contact on file</div>
+                    <div class="prov-factor__foot">
+                      <span class="src src--sfdc">Salesforce</span>
+                      <span class="prov-factor__weight">+12 pts</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="prov-factor">
+                  <span class="prov-factor__arrow prov-factor__arrow--down">▼</span>
+                  <div class="prov-factor__body">
+                    <div class="prov-factor__text">Enrolled in MyChart and opted in to SMS</div>
+                    <div class="prov-factor__foot">
+                      <span class="src src--sfdc">Salesforce</span>
+                      <span class="prov-factor__weight">−5 pts</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="section-label">Reconciled by this app</div>
+              <div class="conflict">
+                <div class="conflict__head">⚠️ Conflicting phone numbers</div>
+                <div class="conflict__versus">
+                  <div class="conflict__side">
+                    <span class="src src--epic">Epic</span>
+                    <div class="conflict__side-value">(773) 555-0142</div>
+                  </div>
+                  <div class="conflict__vs">VS</div>
+                  <div class="conflict__side">
+                    <span class="src src--sfdc">Salesforce</span>
+                    <div class="conflict__side-value">(312) 555-0198</div>
+                  </div>
+                </div>
+                <div class="conflict__resolution">
+                  <span>✓</span>
+                  <div>
+                    <strong>Using Salesforce number.</strong> Patient answered on this line 6 days ago
+                    during a Marketing Cloud SMS reply. Epic number last verified 14 months ago.
+                  </div>
+                </div>
+              </div>
+
+              <div class="conflict">
+                <div class="conflict__head">⚠️ Discharge status mismatch</div>
+                <div class="conflict__versus">
+                  <div class="conflict__side">
+                    <span class="src src--epic">Epic</span>
+                    <div class="conflict__side-value">Discharged Sep 14</div>
+                  </div>
+                  <div class="conflict__vs">VS</div>
+                  <div class="conflict__side">
+                    <span class="src src--sfdc">Salesforce</span>
+                    <div class="conflict__side-value">Case: Inpatient</div>
+                  </div>
+                </div>
+                <div class="conflict__resolution">
+                  <span>✓</span>
+                  <div>
+                    <strong>Trusting Epic.</strong> Epic is source of truth for clinical status.
+                    Salesforce case did not close — sync lag. Flagged for admin cleanup.
+                  </div>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="section-label">Next Best Actions</div>
+
+              <div class="nba-card">
+                <div class="nba-card__icon nba-card__icon--call">📞</div>
+                <div class="nba-card__body">
+                  <div class="nba-card__label nba-card__label--ai">Recommended · High Priority</div>
+                  <div class="nba-card__title">Outbound Post-Discharge Call</div>
+                  <div class="nba-card__desc">Patient has not been contacted since discharge 3 days ago. Medication pickup unconfirmed. Best call window: today before 5pm.</div>
+                  <div class="prov-factor__foot" style="margin-top:var(--space-2);">
+                    <span class="src src--agent">Agentforce</span>
+                    <span class="muted" style="font-size:10px;">reasoning from <span class="src src--epic">Epic</span> + <span class="src src--sfdc">Salesforce</span></span>
+                  </div>
+                  <div class="nba-card__actions">
+                    <button class="btn btn--primary btn--sm">Log Call</button>
+                    <button class="btn btn--ghost btn--sm">Dismiss</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="nba-card">
+                <div class="nba-card__icon nba-card__icon--visit">🏥</div>
+                <div class="nba-card__body">
+                  <div class="nba-card__label nba-card__label--ai">Recommended · Medium Priority</div>
+                  <div class="nba-card__title">Schedule PCP Follow-Up</div>
+                  <div class="nba-card__desc">No follow-up within 7 days of discharge. CHF patients without follow-up readmit at 2.4× the rate.</div>
+                  <div class="prov-factor__foot" style="margin-top:var(--space-2);">
+                    <span class="src src--agent">Agentforce</span>
+                    <span class="muted" style="font-size:10px;">writes to <span class="src src--epic">MyChart</span></span>
+                  </div>
+                  <div class="nba-card__actions">
+                    <button class="btn btn--secondary btn--sm">Open MyChart</button>
+                    <button class="btn btn--ghost btn--sm">Dismiss</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="nba-card">
+                <div class="nba-card__icon nba-card__icon--rx">💊</div>
+                <div class="nba-card__body">
+                  <div class="nba-card__label">Automated · One-Click Trigger</div>
+                  <div class="nba-card__title">Send Medication Reminder SMS</div>
+                  <div class="nba-card__desc">Furosemide 40mg refill is 4 days overdue. Patient is SMS opted-in.</div>
+                  <div class="prov-factor__foot" style="margin-top:var(--space-2);">
+                    <span class="muted" style="font-size:10px;">Rx data <span class="src src--epic">Epic</span> · consent <span class="src src--sfdc">Salesforce</span> · sends via <span class="src src--mc">Marketing Cloud</span></span>
+                  </div>
+                  <div class="nba-card__actions">
+                    <button class="btn btn--secondary btn--sm">Send Now</button>
+                    <button class="btn btn--ghost btn--sm">Dismiss</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="section-label">Log an Outcome</div>
+              <div class="input-group">
+                <label class="input-label">Call Result</label>
+                <select class="select">
+                  <option>Select outcome…</option>
+                  <option>Reached — patient responsive</option>
+                  <option>Left voicemail</option>
+                  <option>No answer</option>
+                  <option>Patient refused</option>
+                  <option>Escalate to social work</option>
+                </select>
+              </div>
+              <div class="input-group">
+                <label class="input-label">Notes</label>
+                <textarea class="input" placeholder="e.g. Confirmed transportation barrier — no ride to pharmacy. Referred to patient transport services."></textarea>
+              </div>
+              <button class="btn btn--primary btn--block">Save Outcome</button>
+              <div class="muted" style="text-align:center;margin-top:var(--space-3);font-size:11px;line-height:1.6;">
+                Writes once to <span class="src src--sfdc">Health Cloud</span><br />
+                No duplicate entry in Epic required
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent activity preview -->
+        <div class="panel">
+          <div class="panel__head">
+            <div class="panel__title">Recent Activity</div>
+          </div>
+          <div class="panel__body">
+            <div class="timeline">
+              <div class="timeline-item">
+                <div class="timeline-dot timeline-dot--red">🏥</div>
+                <div class="timeline-body">
+                  <div class="timeline-body__title">ED Admission</div>
+                  <div class="timeline-body__desc">Admitted via Emergency — CHF exacerbation, shortness of breath.</div>
+                  <div class="timeline-body__time">Sep 14, 2026 · 11:42 PM &nbsp;<span class="src src--epic">Epic</span></div>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot">📋</div>
+                <div class="timeline-body">
+                  <div class="timeline-body__title">Discharged — Clinical Record Closed</div>
+                  <div class="timeline-body__desc">Discharge orders signed. Furosemide 40mg prescribed.</div>
+                  <div class="timeline-body__time">Sep 14, 2026 · 9:15 AM &nbsp;<span class="src src--epic">Epic</span></div>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot">⚡</div>
+                <div class="timeline-body">
+                  <div class="timeline-body__title">Risk Scored — Flagged High</div>
+                  <div class="timeline-body__desc">Epic clinical data joined with Salesforce engagement history. Score 88/100.</div>
+                  <div class="timeline-body__time">Sep 14, 2026 · 9:31 AM &nbsp;<span class="src src--sfdc">Data Cloud</span></div>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot">🤖</div>
+                <div class="timeline-body">
+                  <div class="timeline-body__title">3 Next Best Actions Generated</div>
+                  <div class="timeline-body__desc">Call, schedule follow-up, medication reminder. Routed to coordinator queue.</div>
+                  <div class="timeline-body__time">Sep 14, 2026 · 9:32 AM &nbsp;<span class="src src--agent">Agentforce</span></div>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot timeline-dot--maroon">👤</div>
+                <div class="timeline-body">
+                  <div class="timeline-body__title">Assigned to Sarah Lin</div>
+                  <div class="timeline-body__desc">Auto-assigned by caseload balancing rule.</div>
+                  <div class="timeline-body__time">Sep 15, 2026 · 8:00 AM &nbsp;<span class="src src--sfdc">Health Cloud</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<button class="demo-reset" id="demoReset">↺ Reset demo</button>
+
+<script src="js/session.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var ME = 'sarah';
+
+  var bell       = document.getElementById('bell');
+  var bellCount  = document.getElementById('bellCount');
+  var inbox      = document.getElementById('inbox');
+  var inboxList  = document.getElementById('inboxList');
+  var delegHost  = document.getElementById('delegHost');
+  var queueBody  = document.getElementById('queueBody');
+  var sideBadge  = document.querySelector('.side-nav__item.active .side-nav__badge');
+
+  // Patients already rendered statically — the baseline caseload.
+  var BASE_COUNT = queueBody.querySelectorAll('tr').length;
+  var seen = {};
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  /* ─── Inbox ─────────────────────────────────────── */
+  function renderInbox() {
+    var msgs = UCM.inbox(ME);
+    var unread = UCM.unreadCount(ME);
+
+    bellCount.textContent = unread;
+    bellCount.hidden = unread === 0;
+
+    if (!msgs.length) {
+      inboxList.innerHTML = '<div class="inbox__empty">No messages.<br />' +
+        'Assignments and notes from your manager appear here.</div>';
+      return;
+    }
+
+    inboxList.innerHTML = msgs.map(function (m) {
+      var cls = 'msg' + (m.read ? '' : ' msg--unread') + (m.priority ? ' msg--priority' : '');
+      var kindLabel = m.kind === 'assignment' ? 'Assignment' : 'Message';
+      var kindCls = m.priority ? 'priority' : m.kind;
+      return '' +
+      '<div class="' + cls + '" data-msg="' + m.id + '">' +
+        '<div class="msg__head">' +
+          '<span class="msg__from">' + esc(m.fromName) + '</span>' +
+          '<span class="msg__kind msg__kind--' + kindCls + '">' +
+            (m.priority ? 'Priority' : kindLabel) + '</span>' +
+          '<span class="msg__time">' + UCM.relTime(m.ts) + '</span>' +
+        '</div>' +
+        '<div class="msg__body">' + esc(m.body) + '</div>' +
+        (m.patientName ? '<div class="msg__patient">→ ' + esc(m.patientName) + '</div>' : '') +
+        (m.read ? '' :
+          '<div class="msg__actions">' +
+            '<button class="btn btn--secondary btn--sm" data-role="ack">Acknowledge</button>' +
+          '</div>') +
+      '</div>';
+    }).join('');
+  }
+
+  bell.addEventListener('click', function (e) {
+    e.stopPropagation();
+    inbox.classList.toggle('open');
+  });
+  document.addEventListener('click', function (e) {
+    if (!inbox.contains(e.target) && e.target !== bell) inbox.classList.remove('open');
+  });
+  document.getElementById('inboxReadAll').addEventListener('click', function () {
+    UCM.markAllRead(ME);
+  });
+  inboxList.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-role="ack"]');
+    if (!btn) return;
+    var id = btn.closest('[data-msg]').getAttribute('data-msg');
+    var msg = UCM.inbox(ME).filter(function (m) { return m.id === id; })[0];
+    UCM.markRead(id);
+    if (msg && msg.patientId) UCM.acknowledge(msg.patientId, ME);
+  });
+
+  /* ─── Delegation banners ────────────────────────── */
+  function renderDelegations() {
+    var mine = UCM.assignedTo(ME).filter(function (p) { return !p.acknowledged; });
+    if (!mine.length) { delegHost.innerHTML = ''; return; }
+
+    delegHost.innerHTML = mine.map(function (p) {
+      return '' +
+      '<div class="deleg" data-pt="' + p.id + '">' +
+        '<div class="deleg__icon">JP</div>' +
+        '<div class="deleg__body">' +
+          '<div class="deleg__title">James Porter assigned you ' + esc(p.name) + '</div>' +
+          '<div class="deleg__text">' +
+            'Risk score <strong>' + p.score + '</strong> · ' + esc(p.dx) + ' · ' +
+            'discharged ' + p.hoursSince + ' hours ago · never contacted. ' +
+            'Added to the top of your queue.' +
+          '</div>' +
+          '<div class="deleg__actions">' +
+            '<button class="btn btn--primary btn--sm" data-role="accept">Acknowledge &amp; Start</button>' +
+            '<button class="btn btn--ghost btn--sm" data-role="later">I can\'t take this</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  delegHost.addEventListener('click', function (e) {
+    var wrap = e.target.closest('[data-pt]');
+    if (!wrap) return;
+    var ptId = wrap.getAttribute('data-pt');
+
+    if (e.target.closest('[data-role="accept"]')) {
+      UCM.acknowledge(ptId, ME);
+      UCM.toast('Acknowledged', 'James Porter has been notified you picked this up.', 'ok');
+    }
+    if (e.target.closest('[data-role="later"]')) {
+      UCM.unassign(ptId);
+      UCM.toast('Returned to manager', 'Patient sent back to the unassigned pool.', 'info');
+    }
+  });
+
+  /* ─── Queue injection ───────────────────────────── */
+  function renderQueue() {
+    // Drop previously injected rows, then re-add from state.
+    Array.prototype.slice.call(queueBody.querySelectorAll('[data-injected]'))
+      .forEach(function (n) { n.remove(); });
+
+    var mine = UCM.assignedTo(ME).sort(function (a, b) { return b.score - a.score; });
+
+    mine.forEach(function (p) {
+      var isNew = !seen[p.id];
+      seen[p.id] = true;
+
+      var tr = document.createElement('tr');
+      tr.className = 'row--high' + (isNew ? ' row--new' : '');
+      tr.setAttribute('data-injected', '1');
+      tr.innerHTML =
+        '<td><div class="cell-name">' + esc(p.name) + '</div>' +
+          '<div class="cell-sub">MRN ' + p.mrn + ' · ' + p.age + p.sex + '</div></td>' +
+        '<td><span class="badge badge--high">High</span></td>' +
+        '<td><span class="cell-score cell-score--high">' + p.score + '</span></td>' +
+        '<td>' + esc(p.dx) + '</td>' +
+        '<td>' + Math.floor(p.hoursSince / 24) + ' days ago</td>' +
+        '<td class="' + (p.contacted ? 'cell-muted' : 'cell-unassigned') + '">' +
+          (p.contacted ? esc(p.lastOutcome || 'Contacted') : 'Never') + '</td>' +
+        '<td class="cell-action">📞 Call today</td>';
+      queueBody.insertBefore(tr, queueBody.firstChild);
+    });
+
+    if (sideBadge) sideBadge.textContent = BASE_COUNT + mine.length;
+    var sub = document.querySelector('.page-head__sub');
+    if (sub) {
+      sub.textContent = (BASE_COUNT + mine.length) +
+        ' patients assigned · sorted by readmission risk · Thursday, September 17';
+    }
+  }
+
+  /* ─── Live reactions ────────────────────────────── */
+  function renderAll() { renderInbox(); renderDelegations(); renderQueue(); }
+
+  UCM.subscribe(function (state, evt) {
+    renderAll();
+    if (!evt) return;
+    if (evt.type === 'assign' && state.pool.some(function (p) {
+      return p.id === evt.patientId && p.assignedTo === ME;
+    })) {
+      var pt = state.pool.filter(function (p) { return p.id === evt.patientId; })[0];
+      UCM.toast('New patient assigned',
+        'James Porter assigned you ' + pt.name + ' — risk ' + pt.score + '.', 'assign');
+    }
+    if (evt.type === 'message' && evt.coordId === ME) {
+      var m = UCM.inbox(ME)[0];
+      UCM.toast('Message from James Porter',
+        m ? m.body.slice(0, 90) + (m.body.length > 90 ? '…' : '') : '', 'info');
+    }
+  });
+
+  window.addEventListener('storage', function () { renderAll(); });
+
+  /* ─── Call logging writes back to the manager ───── */
+  var saveBtn = Array.prototype.slice.call(document.querySelectorAll('.btn--block'))
+    .filter(function (b) { return /Save Outcome/i.test(b.textContent); })[0];
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function () {
+      var sel = saveBtn.closest('.panel__body').querySelector('select.select');
+      var note = saveBtn.closest('.panel__body').querySelector('textarea.input');
+      var outcome = sel && sel.selectedIndex > 0 ? sel.value || sel.options[sel.selectedIndex].text : null;
+      if (!outcome) { if (sel) sel.focus(); return; }
+
+      var mine = UCM.assignedTo(ME);
+      var target = mine.length ? mine[0].id : 'p-darnell';
+      UCM.logCall(target, ME, outcome, note ? note.value : '');
+
+      if (sel) sel.selectedIndex = 0;
+      if (note) note.value = '';
+      UCM.toast('Outcome saved', 'Written to Health Cloud. Manager activity feed updated.', 'ok');
+    });
+  }
+
+  document.getElementById('demoReset').addEventListener('click', function () {
+    UCM.reset();
+    seen = {};
+    UCM.toast('Demo reset', 'Session state cleared.', 'info');
+  });
+
+  setInterval(renderInbox, 30000);
+
+  // Anything already assigned at load is pre-existing — don't flash it as new
+  UCM.assignedTo(ME).forEach(function (p) { seen[p.id] = true; });
+  renderAll();
+})();
+</script>
+
+</body>
+</html>
