@@ -6,6 +6,7 @@
   <title>Manager Dashboard — UCM Care Coordination</title>
   <link rel="stylesheet" href="css/app.css" />
   <style>
+    /* Manager role theme — blue, to distinguish from coordinator maroon */
     .app-bar { background: #2F5580; }
     .side-nav__item.active {
       background: #DDEAF8; color: #2F5580; border-left-color: #2F5580;
@@ -18,17 +19,8 @@
     .btn--secondary:hover { background: #DDEAF8; }
     .chip.active { background: #DDEAF8; color: #2F5580; border-color: #2F5580; }
     .search-field:focus-within { border-color: #2F5580; box-shadow: 0 0 0 3px #DDEAF8; }
-
-    .capacity-bar {
-      height: 7px; border-radius: var(--radius-pill);
-      background: var(--gray-100); overflow: hidden;
-      width: 110px; margin-top: 5px;
-    }
-    .capacity-bar__fill { height: 100%; border-radius: var(--radius-pill); }
-    .capacity-bar__fill--over  { background: var(--risk-high-dot); }
-    .capacity-bar__fill--near  { background: var(--risk-medium-dot); }
-    .capacity-bar__fill--ok    { background: var(--risk-low-dot); }
-    .capacity-label { font-size: 11px; color: var(--gray-500); margin-top: 3px; }
+    .input:focus, .select:focus { border-color: #2F5580; box-shadow: 0 0 0 3px #DDEAF8; }
+    .bell__count { border-color: #2F5580; }
 
     .assign-row {
       display: flex; align-items: center; gap: var(--space-3);
@@ -42,23 +34,15 @@
     .assign-row__meta { font-size: 12px; color: var(--gray-500); margin-top: 1px; }
     .assign-row__controls { display: flex; gap: var(--space-2); align-items: center; flex-shrink: 0; }
 
-    .mini-chart {
-      display: flex; align-items: flex-end; gap: 5px;
-      height: 70px; padding-top: var(--space-3);
-    }
+    .mini-chart { display: flex; align-items: flex-end; gap: 5px; height: 70px; padding-top: var(--space-3); }
     .mini-chart__bar {
-      flex: 1; border-radius: 3px 3px 0 0;
-      background: #2F5580; opacity: 0.85;
-      position: relative; min-height: 4px;
+      flex: 1; border-radius: 3px 3px 0 0; background: #2F5580;
+      opacity: 0.85; position: relative; min-height: 4px; transition: opacity 0.15s;
     }
     .mini-chart__bar:hover { opacity: 1; }
     .mini-chart__bar--alert { background: var(--risk-high-dot); }
-    .mini-chart__labels {
-      display: flex; gap: 5px; margin-top: 6px;
-    }
-    .mini-chart__labels span {
-      flex: 1; text-align: center; font-size: 9px; color: var(--gray-500);
-    }
+    .mini-chart__labels { display: flex; gap: 5px; margin-top: 6px; }
+    .mini-chart__labels span { flex: 1; text-align: center; font-size: 9px; color: var(--gray-500); }
   </style>
 </head>
 <body>
@@ -85,36 +69,31 @@
 <!-- ── PROVENANCE BAR ──────────────────────────────────── -->
 <div class="prov-bar">
   <span class="prov-bar__label">Connected Sources</span>
-
   <div class="prov-node">
     <span class="prov-node__dot prov-node__dot--lag"></span>
     <span class="prov-node__name">Epic EHR</span>
     <span class="prov-node__meta">synced 4h 12m ago</span>
   </div>
   <span class="prov-bar__flow">→</span>
-
   <div class="prov-node">
     <span class="prov-node__dot prov-node__dot--live"></span>
     <span class="prov-node__name">Data Cloud</span>
-    <span class="prov-node__meta">133 profiles unified</span>
+    <span class="prov-node__meta"><span id="provProfiles">—</span> profiles unified</span>
   </div>
   <span class="prov-bar__flow">→</span>
-
   <div class="prov-node">
     <span class="prov-node__dot prov-node__dot--live"></span>
     <span class="prov-node__name">Health Cloud</span>
     <span class="prov-node__meta">live read/write</span>
   </div>
   <span class="prov-bar__flow">·</span>
-
   <div class="prov-node">
     <span class="prov-node__dot prov-node__dot--live"></span>
     <span class="prov-node__name">Agentforce</span>
     <span class="prov-node__meta">89 actions today</span>
   </div>
-
   <div class="prov-bar__spacer"></div>
-  <a href="#" class="prov-bar__cta">Data health report</a>
+  <a href="#performance" class="prov-bar__cta" data-view="performance">Data health report</a>
 </div>
 
 <div class="shell">
@@ -122,101 +101,291 @@
   <!-- ── SIDE NAV ──────────────────────────────────────── -->
   <nav class="side-nav">
     <div class="side-nav__group-label">Oversight</div>
-    <a class="side-nav__item active" href="#">
+    <a class="side-nav__item active" href="#dashboard" data-view="dashboard">
       <span class="side-nav__icon">📊</span> Team Dashboard
     </a>
-    <a class="side-nav__item" href="#">
+    <a class="side-nav__item" href="#assignment" data-view="assignment">
       <span class="side-nav__icon">⚠️</span> Needs Assignment
-      <span class="side-nav__badge side-nav__badge--alert">7</span>
+      <span class="side-nav__badge side-nav__badge--alert" id="navUnassigned">0</span>
     </a>
-    <a class="side-nav__item" href="#">
+    <a class="side-nav__item" href="#patients" data-view="patients">
       <span class="side-nav__icon">👥</span> All Patients
-      <span class="side-nav__badge">133</span>
+      <span class="side-nav__badge" id="navPatients">0</span>
     </a>
     <div class="side-nav__group-label">Team</div>
-    <a class="side-nav__item" href="#"><span class="side-nav__icon">🧑‍⚕️</span> Coordinators</a>
-    <a class="side-nav__item" href="#"><span class="side-nav__icon">📈</span> Performance</a>
+    <a class="side-nav__item" href="#coordinators" data-view="coordinators">
+      <span class="side-nav__icon">🧑‍⚕️</span> Coordinators
+      <span class="side-nav__badge" id="navCoords">0</span>
+    </a>
+    <a class="side-nav__item" href="#performance" data-view="performance">
+      <span class="side-nav__icon">📈</span> Performance
+    </a>
     <div class="side-nav__group-label">Account</div>
-    <a class="side-nav__item" href="#"><span class="side-nav__icon">⚙️</span> Settings</a>
+    <a class="side-nav__item" href="#settings" data-view="settings">
+      <span class="side-nav__icon">⚙️</span> Settings
+    </a>
   </nav>
 
   <!-- ── MAIN ──────────────────────────────────────────── -->
   <main class="main">
 
-    <div class="page-head">
-      <div>
-        <h1>Team Dashboard</h1>
-        <div class="page-head__sub">Post-Discharge Care Coordination · 6 coordinators · Thursday, September 17</div>
-      </div>
-      <div class="page-head__actions">
-        <select class="select select--sm" style="width:auto;">
-          <option>Today</option>
-          <option>This Week</option>
-          <option>Last 30 Days</option>
-        </select>
-        <button class="btn btn--secondary btn--sm">Export for Huddle</button>
-      </div>
-    </div>
-
-    <!-- ── CRITICAL ALERT ─────────────────────────────── -->
-    <div class="alert alert--error">
-      <span class="alert__icon">🔴</span>
-      <div>
-        <div class="alert__title">7 high-risk patients have no assigned coordinator</div>
-        <div class="alert__body">These patients are past 24 hours post-discharge with no owner. Assign now — unassigned high-risk patients are the single largest driver of preventable readmissions.</div>
-      </div>
-    </div>
-
-    <!-- ── KPI ROW ────────────────────────────────────── -->
-    <div class="stat-row stat-row--5">
-      <div class="stat-tile stat-tile--alert">
-        <div class="stat-tile__label">Unassigned High-Risk</div>
-        <div class="stat-tile__value stat-tile__value--red">7</div>
-        <div class="stat-tile__sub">needs action now</div>
-      </div>
-      <div class="stat-tile">
-        <div class="stat-tile__label">High Risk</div>
-        <div class="stat-tile__value stat-tile__value--red">34</div>
-        <div class="stat-tile__sub">across all coordinators</div>
-        <div class="stat-tile__delta stat-tile__delta--up">▲ 5 vs. yesterday</div>
-      </div>
-      <div class="stat-tile">
-        <div class="stat-tile__label">Contacted &lt; 48h</div>
-        <div class="stat-tile__value stat-tile__value--amber">71%</div>
-        <div class="stat-tile__sub">target ≥ 80%</div>
-        <div class="stat-tile__delta stat-tile__delta--down">▼ 4% vs. last week</div>
-      </div>
-      <div class="stat-tile">
-        <div class="stat-tile__label">Calls Today</div>
-        <div class="stat-tile__value">47</div>
-        <div class="stat-tile__sub">of 68 planned</div>
-      </div>
-      <div class="stat-tile">
-        <div class="stat-tile__label">30-Day Readmit</div>
-        <div class="stat-tile__value">18.4%</div>
-        <div class="stat-tile__sub">rolling 30 days</div>
-        <div class="stat-tile__delta stat-tile__delta--down">▼ 1.2% vs. prior</div>
-      </div>
-    </div>
-
-    <!-- ── NEEDS ASSIGNMENT ───────────────────────────── -->
-    <div class="panel" style="border-color: var(--risk-high-dot); border-width: 1.5px;">
-      <div class="panel__head" style="background: var(--risk-high-bg); border-bottom-color: #ffcdd2;">
+    <!-- ═══════════════ VIEW: DASHBOARD ═══════════════ -->
+    <section class="view active" id="view-dashboard">
+      <div class="page-head">
         <div>
-          <div class="panel__title" style="color: var(--risk-high-text);">⚠️ Needs Assignment</div>
-          <div class="panel__sub">High-risk patients with no coordinator · ordered by hours since discharge</div>
+          <h1>Team Dashboard</h1>
+          <div class="page-head__sub">
+            Post-Discharge Care Coordination · <span id="dashTeamCount">6</span> coordinators · Thursday, September 17
+          </div>
         </div>
-        <button class="btn btn--primary btn--sm">Auto-Assign All</button>
+        <div class="page-head__actions">
+          <select class="select select--sm" style="width:auto;">
+            <option>Today</option>
+            <option>This Week</option>
+            <option>Last 30 Days</option>
+          </select>
+          <button class="btn btn--secondary btn--sm" id="exportHuddle">Export for Huddle</button>
+        </div>
       </div>
-      <div class="panel__body panel__body--flush">
-        <div id="assignList"></div>
+
+      <div id="dashAlert"></div>
+
+      <div class="stat-row stat-row--5" id="dashKpis"></div>
+
+      <!-- Needs assignment preview -->
+      <div class="panel" id="dashAssignPanel">
+        <div class="panel__head" style="background: var(--risk-high-bg); border-bottom-color: #ffcdd2;">
+          <div>
+            <div class="panel__title" style="color: var(--risk-high-text);">⚠️ Needs Assignment</div>
+            <div class="panel__sub">High-risk patients with no coordinator · ordered by hours since discharge</div>
+          </div>
+          <div class="row row--tight">
+            <button class="btn btn--secondary btn--sm" data-view="assignment">View all</button>
+            <button class="btn btn--primary btn--sm" id="dashAutoAssign">Auto-Assign All</button>
+          </div>
+        </div>
+        <div class="panel__body panel__body--flush">
+          <div id="dashAssignList"></div>
+        </div>
       </div>
-    </div>
 
-    <!-- ── DELEGATE / MESSAGE ─────────────────────────── -->
-    <div class="row" style="gap: var(--space-6); align-items: stretch;">
+      <!-- Team caseload -->
+      <div class="panel">
+        <div class="panel__head">
+          <div>
+            <div class="panel__title">Team Caseload &amp; Activity</div>
+            <div class="panel__sub">Live — updates as coordinators log calls</div>
+          </div>
+          <button class="btn btn--ghost btn--sm" data-view="coordinators">Manage team →</button>
+        </div>
+        <div class="panel__body panel__body--flush">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Coordinator</th>
+                <th>Caseload</th>
+                <th>High Risk</th>
+                <th>Uncontacted</th>
+                <th>Contact Rate</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="dashCaseload"></tbody>
+          </table>
+        </div>
+      </div>
 
-      <div class="panel" style="flex: 1; margin-bottom: 0;">
+      <!-- Trend + distribution -->
+      <div class="row" style="gap: var(--space-6); align-items: stretch;">
+        <div class="panel" style="flex:1; margin-bottom:0;">
+          <div class="panel__head">
+            <div>
+              <div class="panel__title">Contact Rate Within 48 Hours</div>
+              <div class="panel__sub">Last 14 days · target 80%</div>
+            </div>
+          </div>
+          <div class="panel__body">
+            <div class="mini-chart">
+              <div class="mini-chart__bar" style="height:78%" title="Sep 4 — 78%"></div>
+              <div class="mini-chart__bar" style="height:82%" title="Sep 5 — 82%"></div>
+              <div class="mini-chart__bar" style="height:85%" title="Sep 6 — 85%"></div>
+              <div class="mini-chart__bar" style="height:80%" title="Sep 7 — 80%"></div>
+              <div class="mini-chart__bar" style="height:76%" title="Sep 8 — 76%"></div>
+              <div class="mini-chart__bar" style="height:88%" title="Sep 9 — 88%"></div>
+              <div class="mini-chart__bar" style="height:84%" title="Sep 10 — 84%"></div>
+              <div class="mini-chart__bar" style="height:79%" title="Sep 11 — 79%"></div>
+              <div class="mini-chart__bar" style="height:81%" title="Sep 12 — 81%"></div>
+              <div class="mini-chart__bar" style="height:75%" title="Sep 13 — 75%"></div>
+              <div class="mini-chart__bar mini-chart__bar--alert" style="height:69%" title="Sep 14 — 69%"></div>
+              <div class="mini-chart__bar mini-chart__bar--alert" style="height:66%" title="Sep 15 — 66%"></div>
+              <div class="mini-chart__bar mini-chart__bar--alert" style="height:72%" title="Sep 16 — 72%"></div>
+              <div class="mini-chart__bar mini-chart__bar--alert" style="height:71%" title="Sep 17 — 71%"></div>
+            </div>
+            <div class="mini-chart__labels">
+              <span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+              <span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span>
+            </div>
+            <div class="alert alert--warning" style="margin-top: var(--space-5); margin-bottom:0;">
+              <span class="alert__icon">🟡</span>
+              <div>
+                <div class="alert__title">4-day decline below target</div>
+                <div class="alert__body">Correlates with Anthony Russo's caseload and Gerald Okafor being on PTO. Consider redistributing.</div>
+              </div>
+              <div class="alert__action"><button class="btn btn--secondary btn--sm" data-view="coordinators">Rebalance</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" style="width: 340px; flex-shrink:0; margin-bottom:0;">
+          <div class="panel__head">
+            <div>
+              <div class="panel__title">Risk Distribution</div>
+              <div class="panel__sub"><span id="distTotal">0</span> active patients</div>
+            </div>
+          </div>
+          <div class="panel__body">
+            <div class="stack" id="distBars"></div>
+            <div class="divider"></div>
+            <div class="section-label">Top Diagnoses — High Risk</div>
+            <div id="distDx"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ VIEW: NEEDS ASSIGNMENT ═══════════════ -->
+    <section class="view" id="view-assignment">
+      <div class="crumb"><a href="#dashboard" data-view="dashboard">Dashboard</a> › <span>Needs Assignment</span></div>
+      <div class="page-head">
+        <div>
+          <h1>Needs Assignment</h1>
+          <div class="page-head__sub">High-risk patients with no coordinator assigned</div>
+        </div>
+        <div class="page-head__actions">
+          <button class="btn btn--secondary btn--sm" id="asgSuggest">Suggest assignments</button>
+          <button class="btn btn--primary btn--sm" id="asgAutoAll">Auto-Assign All</button>
+        </div>
+      </div>
+
+      <div class="alert alert--info">
+        <span class="alert__icon">🔵</span>
+        <div>
+          <div class="alert__title">How auto-assign works</div>
+          <div class="alert__body">
+            Patients are distributed to the coordinator with the lowest current caseload,
+            skipping anyone on PTO. Every assignment sends a notification to that coordinator
+            and appears in their queue immediately. Assignments can be declined and returned here.
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-row stat-row--4" id="asgKpis"></div>
+
+      <div class="panel">
+        <div class="panel__head">
+          <div>
+            <div class="panel__title">Unassigned Queue</div>
+            <div class="panel__sub">Longest-waiting first — every hour past 48 raises readmission probability</div>
+          </div>
+        </div>
+        <div class="bulkbar" id="asgBulkbar">
+          <span class="bulkbar__count"><span id="asgSelCount">0</span> selected</span>
+          <div class="bulkbar__actions">
+            <select class="select select--sm" style="width:auto;" id="asgBulkWho"></select>
+            <button class="btn btn--primary btn--sm" id="asgBulkGo">Assign Selected</button>
+            <button class="btn btn--ghost btn--sm" id="asgBulkClear">Clear</button>
+          </div>
+        </div>
+        <div class="panel__body panel__body--flush">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th class="checkcell"><input type="checkbox" id="asgCheckAll" /></th>
+                <th>Patient</th>
+                <th>Score</th>
+                <th>Diagnosis</th>
+                <th>Waiting</th>
+                <th>Suggested</th>
+                <th>Assign To</th>
+              </tr>
+            </thead>
+            <tbody id="asgBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ VIEW: ALL PATIENTS ═══════════════ -->
+    <section class="view" id="view-patients">
+      <div class="crumb"><a href="#dashboard" data-view="dashboard">Dashboard</a> › <span>All Patients</span></div>
+      <div class="page-head">
+        <div>
+          <h1>All Patients</h1>
+          <div class="page-head__sub">Every patient under post-discharge management</div>
+        </div>
+        <div class="page-head__actions">
+          <div class="search-field">
+            <span class="icon">🔍</span>
+            <input type="text" id="patSearch" placeholder="Search name, MRN, or diagnosis…" />
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="toolbar">
+          <div class="chip-row" id="patChips">
+            <span class="chip active" data-filter="all">All</span>
+            <span class="chip" data-filter="high">High Risk</span>
+            <span class="chip" data-filter="medium">Medium</span>
+            <span class="chip" data-filter="low">Low</span>
+            <span class="chip" data-filter="uncontacted">Uncontacted</span>
+            <span class="chip" data-filter="unassigned">Unassigned</span>
+          </div>
+          <select class="select select--sm" style="width:auto;" id="patCoordFilter"></select>
+          <span class="toolbar__count" id="patCount">—</span>
+        </div>
+        <div class="panel__body panel__body--flush">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th class="sortable" data-sort="name">Patient <span class="src src--epic">Epic</span></th>
+                <th class="sortable desc" data-sort="score">Score <span class="src src--sfdc">Data Cloud</span></th>
+                <th class="sortable" data-sort="dx">Diagnosis <span class="src src--epic">Epic</span></th>
+                <th class="sortable" data-sort="daysSince">Discharged <span class="src src--epic">Epic</span></th>
+                <th class="sortable" data-sort="assignedTo">Coordinator <span class="src src--sfdc">Salesforce</span></th>
+                <th class="sortable" data-sort="contacted">Last Contact <span class="src src--sfdc">Salesforce</span></th>
+              </tr>
+            </thead>
+            <tbody id="patBody"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <div class="pager__info" id="patPagerInfo">—</div>
+          <div class="pager__btns">
+            <button class="pager__btn" id="patPrev">‹ Prev</button>
+            <button class="pager__btn" id="patNext">Next ›</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ VIEW: COORDINATORS ═══════════════ -->
+    <section class="view" id="view-coordinators">
+      <div class="crumb"><a href="#dashboard" data-view="dashboard">Dashboard</a> › <span>Coordinators</span></div>
+      <div class="page-head">
+        <div>
+          <h1>Coordinators</h1>
+          <div class="page-head__sub">Caseload, capacity, and contact performance by coordinator</div>
+        </div>
+        <div class="page-head__actions">
+          <button class="btn btn--secondary btn--sm" data-view="settings">Capacity settings</button>
+        </div>
+      </div>
+
+      <div id="coordAlert"></div>
+      <div class="coord-grid" id="coordGrid"></div>
+
+      <div class="panel" style="margin-top: var(--space-6);">
         <div class="panel__head">
           <div>
             <div class="panel__title">Message a Coordinator</div>
@@ -224,369 +393,348 @@
           </div>
         </div>
         <div class="panel__body">
-          <div class="input-group">
-            <label class="input-label">To</label>
-            <select class="select" id="msgTo"></select>
+          <div class="row" style="gap: var(--space-5); align-items: flex-start;">
+            <div style="flex:1;">
+              <div class="input-group">
+                <label class="input-label">To</label>
+                <select class="select" id="msgTo"></select>
+              </div>
+              <div class="input-group">
+                <label class="input-label">Regarding patient <span class="muted">(optional)</span></label>
+                <select class="select" id="msgPatient"><option value="">— None —</option></select>
+              </div>
+            </div>
+            <div style="flex:1;">
+              <div class="input-group">
+                <label class="input-label">Message</label>
+                <textarea class="input" id="msgBody" style="min-height:104px;"
+                  placeholder="e.g. Please prioritize the CHF patients this morning — we're behind on the 48-hour window."></textarea>
+              </div>
+              <div class="row row--center" style="justify-content:space-between;">
+                <label class="row row--center row--tight" style="font-size:12px;color:var(--gray-700);cursor:pointer;">
+                  <input type="checkbox" id="msgPriority" /> Mark as priority
+                </label>
+                <button class="btn btn--primary" id="msgSend">Send Message</button>
+              </div>
+            </div>
           </div>
-          <div class="input-group">
-            <label class="input-label">Regarding patient <span class="muted">(optional)</span></label>
-            <select class="select" id="msgPatient"><option value="">— None —</option></select>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ VIEW: PERFORMANCE ═══════════════ -->
+    <section class="view" id="view-performance">
+      <div class="crumb"><a href="#dashboard" data-view="dashboard">Dashboard</a> › <span>Performance</span></div>
+      <div class="page-head">
+        <div>
+          <h1>Performance &amp; Data Health</h1>
+          <div class="page-head__sub">Team outcomes and what the orchestration layer is resolving</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel__head">
+          <div>
+            <div class="panel__title">Contact Rate by Coordinator</div>
+            <div class="panel__sub">Share of eligible patients contacted within the target window</div>
           </div>
-          <div class="input-group">
-            <label class="input-label">Message</label>
-            <textarea class="input" id="msgBody" placeholder="e.g. Please prioritize the CHF patients this morning — we're behind on the 48-hour window."></textarea>
+        </div>
+        <div class="panel__body"><div id="perfRates"></div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel__head">
+          <div>
+            <div class="panel__title">Caseload Distribution</div>
+            <div class="panel__sub">Total patients per coordinator against capacity</div>
           </div>
-          <div class="row row--center" style="justify-content:space-between;">
-            <label class="row row--center row--tight" style="font-size:12px;color:var(--gray-700);cursor:pointer;">
-              <input type="checkbox" id="msgPriority" /> Mark as priority
-            </label>
-            <button class="btn btn--primary" id="msgSend">Send Message</button>
+        </div>
+        <div class="panel__body"><div id="perfLoads"></div></div>
+      </div>
+
+      <!-- Reconciliation health -->
+      <div class="panel">
+        <div class="panel__head">
+          <div>
+            <div class="panel__title">Data Reconciliation Health</div>
+            <div class="panel__sub">What this app is resolving between Epic and Salesforce right now</div>
+          </div>
+        </div>
+        <div class="panel__body">
+          <div class="stat-row stat-row--4" style="margin-bottom: var(--space-5);">
+            <div class="stat-tile">
+              <div class="stat-tile__label">Patients Unified</div>
+              <div class="stat-tile__value" id="recUnified">—</div>
+              <div class="stat-tile__sub">Epic + Salesforce records matched</div>
+            </div>
+            <div class="stat-tile">
+              <div class="stat-tile__label">Conflicts Resolved</div>
+              <div class="stat-tile__value stat-tile__value--amber">41</div>
+              <div class="stat-tile__sub">auto-reconciled this week</div>
+            </div>
+            <div class="stat-tile stat-tile--alert">
+              <div class="stat-tile__label">Needs Manual Review</div>
+              <div class="stat-tile__value stat-tile__value--red">6</div>
+              <div class="stat-tile__sub">app could not resolve</div>
+            </div>
+            <div class="stat-tile">
+              <div class="stat-tile__label">Would Have Been Missed</div>
+              <div class="stat-tile__value stat-tile__value--green">23</div>
+              <div class="stat-tile__sub">high-risk, only visible when joined</div>
+            </div>
+          </div>
+
+          <div class="alert alert--success" style="margin-bottom: var(--space-5);">
+            <span class="alert__icon">🟢</span>
+            <div>
+              <div class="alert__title">23 high-risk patients were invisible to either system alone</div>
+              <div class="alert__body">
+                These patients did not meet the high-risk threshold on Epic clinical factors alone,
+                nor on Salesforce engagement factors alone. They only surface when both are scored
+                together — the clearest single measure of what this layer adds.
+              </div>
+            </div>
+          </div>
+
+          <div class="section-label">Common conflict types this week</div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Conflict Type</th><th>Epic Says</th><th>Salesforce Says</th>
+                <th>Resolution Rule</th><th>Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="cell-name">Discharge status mismatch</div></td>
+                <td><span class="src src--epic">Epic</span> Discharged</td>
+                <td><span class="src src--sfdc">SFDC</span> Case still open</td>
+                <td class="cell-muted">Epic wins — clinical source of truth</td>
+                <td><strong>17</strong></td>
+              </tr>
+              <tr>
+                <td><div class="cell-name">Contact number differs</div></td>
+                <td><span class="src src--epic">Epic</span> Registration phone</td>
+                <td><span class="src src--sfdc">SFDC</span> Last-responded phone</td>
+                <td class="cell-muted">Salesforce wins — verified more recently</td>
+                <td><strong>12</strong></td>
+              </tr>
+              <tr>
+                <td><div class="cell-name">Follow-up appointment</div></td>
+                <td><span class="src src--epic">Epic</span> Scheduled</td>
+                <td><span class="src src--sfdc">SFDC</span> No record</td>
+                <td class="cell-muted">Epic wins — scheduling system of record</td>
+                <td><strong>8</strong></td>
+              </tr>
+              <tr>
+                <td><div class="cell-name">Duplicate patient record</div></td>
+                <td><span class="src src--epic">Epic</span> Single MRN</td>
+                <td><span class="src src--sfdc">SFDC</span> Two contact records</td>
+                <td class="cell-unassigned">Unresolved — needs manual merge</td>
+                <td><strong>6</strong></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="alert alert--warning" style="margin-top: var(--space-5); margin-bottom: 0;">
+            <span class="alert__icon">🟡</span>
+            <div>
+              <div class="alert__title">Epic sync running 4h 12m behind</div>
+              <div class="alert__body">
+                Clinical fields — diagnosis, discharge date, medications — may be stale.
+                Engagement fields from Salesforce are live. Risk scores recomputed at last sync.
+              </div>
+            </div>
+            <div class="alert__action"><button class="btn btn--secondary btn--sm" id="perfResync">Request Resync</button></div>
           </div>
         </div>
       </div>
 
-      <div class="panel" style="width: 420px; flex-shrink: 0; margin-bottom: 0;">
+      <div class="panel">
         <div class="panel__head">
           <div>
-            <div class="panel__title">Live Activity</div>
-            <div class="panel__sub">Updates as coordinators act</div>
+            <div class="panel__title">Session Activity</div>
+            <div class="panel__sub">Everything that has happened in this session</div>
           </div>
+          <span class="muted" id="perfActCount"></span>
         </div>
         <div class="panel__body" style="max-height: 420px; overflow-y: auto;">
           <div class="feed" id="activityFeed"></div>
         </div>
       </div>
+    </section>
 
-    </div>
-
-    <!-- ── TEAM CASELOAD ──────────────────────────────── -->
-    <div class="panel">
-      <div class="panel__head">
+    <!-- ═══════════════ VIEW: SETTINGS ═══════════════ -->
+    <section class="view" id="view-settings">
+      <div class="crumb"><a href="#dashboard" data-view="dashboard">Dashboard</a> › <span>Settings</span></div>
+      <div class="page-head">
         <div>
-          <div class="panel__title">Team Caseload &amp; Activity</div>
-          <div class="panel__sub">Live — updates as coordinators log calls</div>
-        </div>
-        <div class="chip-row">
-          <span class="chip active">All</span>
-          <span class="chip">Over Capacity</span>
-          <span class="chip">Behind Target</span>
+          <h1>Settings</h1>
+          <div class="page-head__sub">Thresholds and rules — changes apply across every view immediately</div>
         </div>
       </div>
-      <div class="panel__body panel__body--flush">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Coordinator</th>
-              <th>Caseload</th>
-              <th>High Risk</th>
-              <th>Calls Today</th>
-              <th>Uncontacted</th>
-              <th>&lt; 48h Rate</th>
-              <th>Last Activity</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <div class="cell-name">Sarah Lin, RN</div>
-                <div class="cell-sub">Post-Discharge Team A</div>
-              </td>
-              <td>
-                <strong>18</strong>
-                <div class="capacity-bar"><div class="capacity-bar__fill capacity-bar__fill--over" style="width:100%"></div></div>
-                <div class="capacity-label">Over capacity (15)</div>
-              </td>
-              <td><span class="cell-score cell-score--high">6</span></td>
-              <td>9</td>
-              <td><span class="cell-unassigned">4</span></td>
-              <td><span class="badge badge--medium">68%</span></td>
-              <td class="cell-muted">12 min ago</td>
-            </tr>
-            <tr>
-              <td>
-                <div class="cell-name">Marcus Webb, RN</div>
-                <div class="cell-sub">Post-Discharge Team A</div>
-              </td>
-              <td>
-                <strong>14</strong>
-                <div class="capacity-bar"><div class="capacity-bar__fill capacity-bar__fill--near" style="width:93%"></div></div>
-                <div class="capacity-label">Near capacity (15)</div>
-              </td>
-              <td><span class="cell-score cell-score--high">5</span></td>
-              <td>11</td>
-              <td><span class="cell-unassigned">2</span></td>
-              <td><span class="badge badge--low">84%</span></td>
-              <td class="cell-muted">4 min ago</td>
-            </tr>
-            <tr>
-              <td>
-                <div class="cell-name">Denise Kaur, LCSW</div>
-                <div class="cell-sub">Social Work · Complex Cases</div>
-              </td>
-              <td>
-                <strong>12</strong>
-                <div class="capacity-bar"><div class="capacity-bar__fill capacity-bar__fill--ok" style="width:80%"></div></div>
-                <div class="capacity-label">Within capacity (15)</div>
-              </td>
-              <td><span class="cell-score cell-score--high">8</span></td>
-              <td>7</td>
-              <td><span class="cell-muted">0</span></td>
-              <td><span class="badge badge--low">92%</span></td>
-              <td class="cell-muted">28 min ago</td>
-            </tr>
-            <tr>
-              <td>
-                <div class="cell-name">Anthony Russo, RN</div>
-                <div class="cell-sub">Post-Discharge Team B</div>
-              </td>
-              <td>
-                <strong>16</strong>
-                <div class="capacity-bar"><div class="capacity-bar__fill capacity-bar__fill--over" style="width:100%"></div></div>
-                <div class="capacity-label">Over capacity (15)</div>
-              </td>
-              <td><span class="cell-score cell-score--high">7</span></td>
-              <td>8</td>
-              <td><span class="cell-unassigned">5</span></td>
-              <td><span class="badge badge--high">54%</span></td>
-              <td class="cell-muted">1 hr ago</td>
-            </tr>
-            <tr>
-              <td>
-                <div class="cell-name">Priya Raman, RN</div>
-                <div class="cell-sub">Post-Discharge Team B</div>
-              </td>
-              <td>
-                <strong>11</strong>
-                <div class="capacity-bar"><div class="capacity-bar__fill capacity-bar__fill--ok" style="width:73%"></div></div>
-                <div class="capacity-label">Within capacity (15)</div>
-              </td>
-              <td><span class="cell-score cell-score--medium">4</span></td>
-              <td>12</td>
-              <td><span class="cell-muted">0</span></td>
-              <td><span class="badge badge--low">88%</span></td>
-              <td class="cell-muted">7 min ago</td>
-            </tr>
-            <tr>
-              <td>
-                <div class="cell-name">Gerald Okafor, LCSW</div>
-                <div class="cell-sub">Social Work · Complex Cases</div>
-              </td>
-              <td>
-                <strong>9</strong>
-                <div class="capacity-bar"><div class="capacity-bar__fill capacity-bar__fill--ok" style="width:60%"></div></div>
-                <div class="capacity-label">Within capacity (15)</div>
-              </td>
-              <td><span class="cell-score cell-score--medium">4</span></td>
-              <td>0</td>
-              <td><span class="cell-unassigned">3</span></td>
-              <td><span class="badge badge--neutral">—</span></td>
-              <td class="cell-muted">PTO today</td>
-            </tr>
-          </tbody>
-        </table>
+
+      <div class="alert alert--info">
+        <span class="alert__icon">🔵</span>
+        <div>
+          <div class="alert__title">These are live controls</div>
+          <div class="alert__body">
+            Adjusting a risk threshold re-tiers every patient in the system and updates all counts,
+            distributions, and alerts. Useful for showing how sensitive the triage queue is to where
+            the high-risk line is drawn.
+          </div>
+        </div>
       </div>
-    </div>
 
-    <!-- ── TREND + BREAKDOWN ──────────────────────────── -->
-    <div class="row" style="gap: var(--space-6); align-items: stretch;">
-
-      <div class="panel" style="flex:1; margin-bottom:0;">
+      <div class="panel">
         <div class="panel__head">
           <div>
-            <div class="panel__title">Contact Rate Within 48 Hours</div>
-            <div class="panel__sub">Last 14 days · target 80%</div>
+            <div class="panel__title">Risk Thresholds</div>
+            <div class="panel__sub">Score boundaries that determine patient tier</div>
           </div>
         </div>
         <div class="panel__body">
-          <div class="mini-chart">
-            <div class="mini-chart__bar" style="height:78%"></div>
-            <div class="mini-chart__bar" style="height:82%"></div>
-            <div class="mini-chart__bar" style="height:85%"></div>
-            <div class="mini-chart__bar" style="height:80%"></div>
-            <div class="mini-chart__bar" style="height:76%"></div>
-            <div class="mini-chart__bar" style="height:88%"></div>
-            <div class="mini-chart__bar" style="height:84%"></div>
-            <div class="mini-chart__bar" style="height:79%"></div>
-            <div class="mini-chart__bar" style="height:81%"></div>
-            <div class="mini-chart__bar" style="height:75%"></div>
-            <div class="mini-chart__bar mini-chart__bar--alert" style="height:69%"></div>
-            <div class="mini-chart__bar mini-chart__bar--alert" style="height:66%"></div>
-            <div class="mini-chart__bar mini-chart__bar--alert" style="height:72%"></div>
-            <div class="mini-chart__bar mini-chart__bar--alert" style="height:71%"></div>
+          <div class="setting">
+            <div class="setting__info">
+              <div class="setting__name">High-risk threshold</div>
+              <div class="setting__desc">
+                Patients scoring at or above this are flagged high risk and surface in the
+                priority queue. Currently <strong id="setHighCount">—</strong> patients qualify.
+              </div>
+            </div>
+            <div class="setting__control">
+              <div class="stepper">
+                <button class="stepper__btn" data-step="highThreshold" data-dir="-1">−</button>
+                <div class="stepper__val" id="setHighVal">75</div>
+                <button class="stepper__btn" data-step="highThreshold" data-dir="1">+</button>
+              </div>
+            </div>
           </div>
-          <div class="mini-chart__labels">
-            <span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
-            <span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span>
-          </div>
-          <div class="alert alert--warning" style="margin-top: var(--space-5); margin-bottom:0;">
-            <span class="alert__icon">🟡</span>
-            <div>
-              <div class="alert__title">4-day decline below target</div>
-              <div class="alert__body">Correlates with Anthony Russo and Gerald Okafor reduced availability. Consider redistributing caseload.</div>
+
+          <div class="setting">
+            <div class="setting__info">
+              <div class="setting__name">Medium-risk threshold</div>
+              <div class="setting__desc">
+                Lower boundary for medium risk. Below this, patients are monitoring-only.
+                Currently <strong id="setMedCount">—</strong> patients qualify as medium.
+              </div>
+            </div>
+            <div class="setting__control">
+              <div class="stepper">
+                <button class="stepper__btn" data-step="mediumThreshold" data-dir="-1">−</button>
+                <div class="stepper__val" id="setMedVal">40</div>
+                <button class="stepper__btn" data-step="mediumThreshold" data-dir="1">+</button>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="panel" style="width: 340px; flex-shrink:0; margin-bottom:0;">
+      <div class="panel">
         <div class="panel__head">
           <div>
-            <div class="panel__title">Risk Distribution</div>
-            <div class="panel__sub">133 active patients</div>
+            <div class="panel__title">Capacity &amp; Contact Rules</div>
+            <div class="panel__sub">Operational targets used for alerts and auto-assignment</div>
           </div>
         </div>
         <div class="panel__body">
-          <div class="stack">
-            <div>
-              <div class="row row--center" style="justify-content:space-between; margin-bottom:5px;">
-                <span class="badge badge--high">High Risk</span>
-                <strong>34</strong>
-              </div>
-              <div class="capacity-bar" style="width:100%;">
-                <div class="capacity-bar__fill capacity-bar__fill--over" style="width:26%"></div>
+          <div class="setting">
+            <div class="setting__info">
+              <div class="setting__name">Coordinator capacity</div>
+              <div class="setting__desc">
+                Maximum patients per coordinator before they are flagged over capacity.
+                <strong id="setOverCount">—</strong> coordinators currently exceed this.
               </div>
             </div>
-            <div>
-              <div class="row row--center" style="justify-content:space-between; margin-bottom:5px;">
-                <span class="badge badge--medium">Medium Risk</span>
-                <strong>52</strong>
-              </div>
-              <div class="capacity-bar" style="width:100%;">
-                <div class="capacity-bar__fill capacity-bar__fill--near" style="width:39%"></div>
-              </div>
-            </div>
-            <div>
-              <div class="row row--center" style="justify-content:space-between; margin-bottom:5px;">
-                <span class="badge badge--low">Low Risk</span>
-                <strong>47</strong>
-              </div>
-              <div class="capacity-bar" style="width:100%;">
-                <div class="capacity-bar__fill capacity-bar__fill--ok" style="width:35%"></div>
+            <div class="setting__control">
+              <div class="stepper">
+                <button class="stepper__btn" data-step="defaultCapacity" data-dir="-1">−</button>
+                <div class="stepper__val" id="setCapVal">15</div>
+                <button class="stepper__btn" data-step="defaultCapacity" data-dir="1">+</button>
               </div>
             </div>
           </div>
 
-          <div class="divider"></div>
+          <div class="setting">
+            <div class="setting__info">
+              <div class="setting__name">Contact window (hours)</div>
+              <div class="setting__desc">
+                Target window for first contact after discharge. Drives the contact-rate metric
+                and the overdue alert on the dashboard.
+              </div>
+            </div>
+            <div class="setting__control">
+              <div class="stepper">
+                <button class="stepper__btn" data-step="contactWindowHours" data-dir="-1">−</button>
+                <div class="stepper__val" id="setWinVal">48</div>
+                <button class="stepper__btn" data-step="contactWindowHours" data-dir="1">+</button>
+              </div>
+            </div>
+          </div>
 
-          <div class="section-label">Top Diagnoses — High Risk</div>
-          <table style="width:100%; font-size:13px;">
-            <tr><td style="padding:4px 0;">CHF Exacerbation</td><td style="text-align:right;"><strong>11</strong></td></tr>
-            <tr><td style="padding:4px 0;">COPD</td><td style="text-align:right;"><strong>8</strong></td></tr>
-            <tr><td style="padding:4px 0;">Sepsis Recovery</td><td style="text-align:right;"><strong>6</strong></td></tr>
-            <tr><td style="padding:4px 0;">Diabetic Ketoacidosis</td><td style="text-align:right;"><strong>5</strong></td></tr>
-            <tr><td style="padding:4px 0;">Post-Op Cardiac</td><td style="text-align:right;"><strong>4</strong></td></tr>
-          </table>
+          <div class="setting">
+            <div class="setting__info">
+              <div class="setting__name">Notify on unassigned high-risk</div>
+              <div class="setting__desc">
+                Show the red dashboard banner when any high-risk patient has no coordinator.
+              </div>
+            </div>
+            <div class="setting__control">
+              <label class="toggle">
+                <input type="checkbox" id="setNotify" />
+                <span class="toggle__track"></span>
+              </label>
+            </div>
+          </div>
         </div>
       </div>
 
-    </div>
-
-    <!-- ── DATA RECONCILIATION HEALTH ─────────────────── -->
-    <div class="panel" style="margin-top: var(--space-6);">
-      <div class="panel__head">
-        <div>
-          <div class="panel__title">Data Reconciliation Health</div>
-          <div class="panel__sub">What this app is resolving between Epic and Salesforce right now</div>
-        </div>
-        <a href="#" class="prov-bar__cta">Full lineage report</a>
-      </div>
-      <div class="panel__body">
-
-        <div class="stat-row stat-row--4" style="margin-bottom: var(--space-5);">
-          <div class="stat-tile">
-            <div class="stat-tile__label">Patients Unified</div>
-            <div class="stat-tile__value">133</div>
-            <div class="stat-tile__sub">Epic + Salesforce records matched</div>
-          </div>
-          <div class="stat-tile">
-            <div class="stat-tile__label">Conflicts Resolved</div>
-            <div class="stat-tile__value stat-tile__value--amber">41</div>
-            <div class="stat-tile__sub">auto-reconciled this week</div>
-          </div>
-          <div class="stat-tile stat-tile--alert">
-            <div class="stat-tile__label">Needs Manual Review</div>
-            <div class="stat-tile__value stat-tile__value--red">6</div>
-            <div class="stat-tile__sub">app could not resolve</div>
-          </div>
-          <div class="stat-tile">
-            <div class="stat-tile__label">Would Have Been Missed</div>
-            <div class="stat-tile__value stat-tile__value--green">23</div>
-            <div class="stat-tile__sub">high-risk, only visible when joined</div>
-          </div>
-        </div>
-
-        <div class="alert alert--success" style="margin-bottom: var(--space-5);">
-          <span class="alert__icon">🟢</span>
+      <div class="panel">
+        <div class="panel__head">
           <div>
-            <div class="alert__title">23 high-risk patients were invisible to either system alone</div>
-            <div class="alert__body">
-              These patients did not meet the high-risk threshold on Epic clinical factors alone,
-              nor on Salesforce engagement factors alone. They only surface when both are scored together —
-              which is the single clearest measure of what this layer adds.
+            <div class="panel__title">Session</div>
+            <div class="panel__sub">Prototype state management</div>
+          </div>
+        </div>
+        <div class="panel__body">
+          <div class="setting">
+            <div class="setting__info">
+              <div class="setting__name">Reset demo state</div>
+              <div class="setting__desc">
+                Clears all assignments, messages, and activity, and restores default thresholds.
+                Use between demo runs.
+              </div>
+            </div>
+            <div class="setting__control">
+              <button class="btn btn--secondary" id="setReset">Reset Everything</button>
+            </div>
+          </div>
+          <div class="setting">
+            <div class="setting__info">
+              <div class="setting__name">Storage backend</div>
+              <div class="setting__desc" id="setStorage">—</div>
             </div>
           </div>
         </div>
-
-        <div class="section-label">Common conflict types this week</div>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Conflict Type</th>
-              <th>Epic Says</th>
-              <th>Salesforce Says</th>
-              <th>Resolution Rule</th>
-              <th>Count</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><div class="cell-name">Discharge status mismatch</div></td>
-              <td><span class="src src--epic">Epic</span> Discharged</td>
-              <td><span class="src src--sfdc">SFDC</span> Case still open</td>
-              <td class="cell-muted">Epic wins — clinical source of truth</td>
-              <td><strong>17</strong></td>
-            </tr>
-            <tr>
-              <td><div class="cell-name">Contact number differs</div></td>
-              <td><span class="src src--epic">Epic</span> Registration phone</td>
-              <td><span class="src src--sfdc">SFDC</span> Last-responded phone</td>
-              <td class="cell-muted">Salesforce wins — verified more recently</td>
-              <td><strong>12</strong></td>
-            </tr>
-            <tr>
-              <td><div class="cell-name">Follow-up appointment</div></td>
-              <td><span class="src src--epic">Epic</span> Scheduled</td>
-              <td><span class="src src--sfdc">SFDC</span> No record</td>
-              <td class="cell-muted">Epic wins — scheduling system of record</td>
-              <td><strong>8</strong></td>
-            </tr>
-            <tr>
-              <td><div class="cell-name">Duplicate patient record</div></td>
-              <td><span class="src src--epic">Epic</span> Single MRN</td>
-              <td><span class="src src--sfdc">SFDC</span> Two contact records</td>
-              <td class="cell-unassigned">Unresolved — needs manual merge</td>
-              <td><strong>6</strong></td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="alert alert--warning" style="margin-top: var(--space-5); margin-bottom: 0;">
-          <span class="alert__icon">🟡</span>
-          <div>
-            <div class="alert__title">Epic sync running 4h 12m behind</div>
-            <div class="alert__body">
-              Clinical fields — diagnosis, discharge date, medications — may be stale.
-              Engagement fields from Salesforce are live. Risk scores recomputed at last sync.
-            </div>
-          </div>
-          <div class="alert__action"><button class="btn btn--secondary btn--sm">Request Resync</button></div>
-        </div>
-
       </div>
-    </div>
+    </section>
 
   </main>
 </div>
+
+<!-- ── PATIENT DRAWER ──────────────────────────────────── -->
+<div class="drawer-scrim" id="scrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer__head">
+    <div>
+      <div class="drawer__title" id="drTitle">—</div>
+      <div class="drawer__sub" id="drSub">—</div>
+    </div>
+    <button class="drawer__close" id="drClose" aria-label="Close">×</button>
+  </div>
+  <div class="drawer__body" id="drBody"></div>
+  <div class="drawer__foot" id="drFoot"></div>
+</aside>
 
 <button class="demo-reset" id="demoReset">↺ Reset demo</button>
 
@@ -595,140 +743,623 @@
 (function () {
   'use strict';
 
-  var assignList = document.getElementById('assignList');
-  var feed       = document.getElementById('activityFeed');
-  var msgTo      = document.getElementById('msgTo');
-  var msgPatient = document.getElementById('msgPatient');
-  var msgBody    = document.getElementById('msgBody');
-  var msgPriority= document.getElementById('msgPriority');
-  var unassignedBadge = document.querySelector('.side-nav__badge--alert');
-
+  /* ═══════════════ helpers ═══════════════ */
+  function $(id) { return document.getElementById(id); }
   function esc(s) {
-    return String(s).replace(/[&<>"]/g, function (c) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
     });
   }
+  function initials(name) {
+    return name.split(/[\s,]+/).filter(Boolean).slice(0, 2)
+      .map(function (w) { return w[0]; }).join('').toUpperCase();
+  }
+  function tierBadge(tier) {
+    var label = tier.charAt(0).toUpperCase() + tier.slice(1);
+    return '<span class="badge badge--' + tier + '">' + label + '</span>';
+  }
+  function coordName(id) {
+    var c = UCM.coordinator(id);
+    return c ? c.short : null;
+  }
+  function meterClass(total, cap) {
+    if (total > cap) return 'over';
+    if (total >= cap * 0.9) return 'near';
+    return 'ok';
+  }
 
-  function coordOptions(selectedId) {
-    return UCM.COORDINATORS.map(function (c) {
-      var over = c.load > c.cap;
-      return '<option value="' + c.id + '"' + (c.id === selectedId ? ' selected' : '') + '>' +
-             esc(c.short) + ' (' + c.load + ')' + (over ? ' — over' : '') + (c.away ? ' — PTO' : '') +
-             '</option>';
+  /* ═══════════════ view router ═══════════════ */
+  var VIEWS = ['dashboard','assignment','patients','coordinators','performance','settings'];
+
+  function go(view, push) {
+    if (VIEWS.indexOf(view) === -1) view = 'dashboard';
+    VIEWS.forEach(function (v) {
+      var el = $('view-' + v);
+      if (el) el.classList.toggle('active', v === view);
+    });
+    document.querySelectorAll('.side-nav__item[data-view]').forEach(function (a) {
+      a.classList.toggle('active', a.getAttribute('data-view') === view);
+    });
+    if (push !== false && location.hash !== '#' + view) {
+      history.pushState(null, '', '#' + view);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    render();
+  }
+
+  // Any element with data-view navigates
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-view]');
+    if (!t) return;
+    e.preventDefault();
+    go(t.getAttribute('data-view'));
+  });
+  window.addEventListener('popstate', function () {
+    go((location.hash || '#dashboard').slice(1), false);
+  });
+
+  /* ═══════════════ DASHBOARD ═══════════════ */
+  function renderDashboard() {
+    var all = UCM.allPatients();
+    var s = UCM.settings();
+    var pool = UCM.unassigned();
+    var loads = UCM.caseloads();
+
+    var high = all.filter(function (p) { return p.tier === 'high'; });
+    var eligible = all.filter(function (p) { return p.hoursSince >= s.contactWindowHours; });
+    var rate = eligible.length
+      ? Math.round(eligible.filter(function (p) { return p.contacted; }).length / eligible.length * 100)
+      : 0;
+    var uncontacted = all.filter(function (p) { return !p.contacted; });
+
+    // Alert
+    $('dashAlert').innerHTML = (pool.length && s.notifyOnUnassigned) ? '' +
+      '<div class="alert alert--error">' +
+        '<span class="alert__icon">🔴</span>' +
+        '<div>' +
+          '<div class="alert__title">' + pool.length +
+            ' high-risk patient' + (pool.length === 1 ? '' : 's') + ' have no assigned coordinator</div>' +
+          '<div class="alert__body">These patients are past 24 hours post-discharge with no owner. ' +
+            'Unassigned high-risk patients are the single largest driver of preventable readmissions.</div>' +
+        '</div>' +
+        '<div class="alert__action"><button class="btn btn--primary btn--sm" data-view="assignment">Assign now</button></div>' +
+      '</div>'
+      : (!pool.length ? '' +
+        '<div class="alert alert--success">' +
+          '<span class="alert__icon">🟢</span>' +
+          '<div><div class="alert__title">Every high-risk patient has an owner</div>' +
+          '<div class="alert__body">No unassigned patients in the queue.</div></div>' +
+        '</div>' : '');
+
+    // KPIs
+    $('dashKpis').innerHTML = '' +
+      kpi('Unassigned High-Risk', pool.length, 'needs action now', pool.length ? 'red' : 'green', pool.length > 0) +
+      kpi('High Risk', high.length, 'across all coordinators', 'red') +
+      kpi('Contacted &lt; ' + s.contactWindowHours + 'h', rate + '%',
+          'target ≥ 80%', rate >= 80 ? 'green' : 'amber') +
+      kpi('Uncontacted', uncontacted.length, 'no outreach logged', uncontacted.length ? 'amber' : 'green') +
+      kpi('Total Managed', all.length, 'active post-discharge', '');
+
+    $('dashTeamCount').textContent = loads.length;
+
+    // Assignment preview — top 4
+    var top = pool.slice(0, 4);
+    $('dashAssignList').innerHTML = top.length
+      ? top.map(assignRowHtml).join('') +
+        (pool.length > 4
+          ? '<div style="padding:var(--space-3) var(--space-5);text-align:center;">' +
+            '<button class="btn btn--ghost btn--sm" data-view="assignment">Show ' +
+            (pool.length - 4) + ' more unassigned patients</button></div>'
+          : '')
+      : '<div class="empty"><div class="empty__icon">✓</div>' +
+        '<div class="empty__title" style="color:var(--risk-low-text);">Every high-risk patient has an owner</div>' +
+        '<div class="empty__text">No unassigned patients past the 24-hour threshold.</div></div>';
+
+    $('dashAssignPanel').style.display = pool.length ? '' : 'none';
+
+    // Caseload table
+    $('dashCaseload').innerHTML = loads.map(function (c) {
+      var mc = meterClass(c.total, c.capacity);
+      var status = c.coord.away ? '<span class="badge badge--neutral">PTO</span>'
+        : c.overBy ? '<span class="badge badge--high">Over by ' + c.overBy + '</span>'
+        : '<span class="badge badge--low">Within capacity</span>';
+      return '<tr data-coord="' + c.coord.id + '">' +
+        '<td><div class="cell-name">' + esc(c.coord.name) + '</div>' +
+          '<div class="cell-sub">' + esc(c.coord.team) + '</div></td>' +
+        '<td><strong>' + c.total + '</strong>' +
+          '<div class="meter" style="width:110px;margin-top:5px;">' +
+            '<div class="meter__fill meter__fill--' + mc + '" style="width:' +
+              Math.min(100, c.total / c.capacity * 100) + '%"></div></div></td>' +
+        '<td><span class="cell-score cell-score--high">' + c.high + '</span></td>' +
+        '<td>' + (c.uncontacted
+          ? '<span class="cell-unassigned">' + c.uncontacted + '</span>'
+          : '<span class="cell-muted">0</span>') + '</td>' +
+        '<td>' + (c.contactRate == null ? '<span class="badge badge--neutral">—</span>'
+          : '<span class="badge badge--' + (c.contactRate >= 80 ? 'low' :
+              c.contactRate >= 60 ? 'medium' : 'high') + '">' + c.contactRate + '%</span>') + '</td>' +
+        '<td>' + status + '</td>' +
+      '</tr>';
+    }).join('');
+
+    // Distribution
+    $('distTotal').textContent = all.length;
+    var tiers = [
+      { t: 'high',   label: 'High Risk',   cls: 'over' },
+      { t: 'medium', label: 'Medium Risk', cls: 'near' },
+      { t: 'low',    label: 'Low Risk',    cls: 'ok' }
+    ];
+    $('distBars').innerHTML = tiers.map(function (x) {
+      var n = all.filter(function (p) { return p.tier === x.t; }).length;
+      var pct = all.length ? Math.round(n / all.length * 100) : 0;
+      return '<div>' +
+        '<div class="row row--center" style="justify-content:space-between;margin-bottom:5px;">' +
+          tierBadge(x.t) + '<strong>' + n + '</strong></div>' +
+        '<div class="meter"><div class="meter__fill meter__fill--' + x.cls +
+          '" style="width:' + pct + '%"></div></div>' +
+        '<div class="meter__label"><span>' + pct + '% of total</span></div>' +
+      '</div>';
+    }).join('');
+
+    // Top diagnoses among high risk
+    var dxCount = {};
+    high.forEach(function (p) { dxCount[p.dx] = (dxCount[p.dx] || 0) + 1; });
+    var dxTop = Object.keys(dxCount).map(function (k) { return { dx: k, n: dxCount[k] }; })
+      .sort(function (a, b) { return b.n - a.n; }).slice(0, 5);
+    $('distDx').innerHTML = dxTop.length
+      ? '<table style="width:100%;font-size:13px;">' + dxTop.map(function (d) {
+          return '<tr><td style="padding:4px 0;">' + esc(d.dx) +
+            '</td><td style="text-align:right;"><strong>' + d.n + '</strong></td></tr>';
+        }).join('') + '</table>'
+      : '<div class="muted">No high-risk patients.</div>';
+
+    $('provProfiles').textContent = all.length;
+  }
+
+  function kpi(label, value, sub, color, alert) {
+    return '<div class="stat-tile' + (alert ? ' stat-tile--alert' : '') + '">' +
+      '<div class="stat-tile__label">' + label + '</div>' +
+      '<div class="stat-tile__value' + (color ? ' stat-tile__value--' + color : '') + '">' + value + '</div>' +
+      '<div class="stat-tile__sub">' + sub + '</div>' +
+    '</div>';
+  }
+
+  function coordOptions(selected) {
+    return UCM.caseloads().map(function (c) {
+      return '<option value="' + c.coord.id + '"' +
+        (c.coord.id === selected ? ' selected' : '') + '>' +
+        esc(c.coord.short) + ' (' + c.total + ')' +
+        (c.overBy ? ' — over' : '') + (c.coord.away ? ' — PTO' : '') +
+      '</option>';
     }).join('');
   }
 
-  /* ─── Needs Assignment list ─────────────────────── */
-  function renderAssign() {
-    var pool = UCM.unassigned();
+  function assignRowHtml(p) {
+    var sug = UCM.suggestCoordinator();
+    return '<div class="assign-row" data-pt="' + p.id + '">' +
+      '<span class="badge badge--high">' + p.score + '</span>' +
+      '<div class="assign-row__info">' +
+        '<div class="assign-row__name">' + esc(p.name) + '</div>' +
+        '<div class="assign-row__meta">MRN ' + p.mrn + ' · ' + p.age + p.sex + ' · ' +
+          esc(p.dx) + ' · Discharged ' + p.hoursSince + ' hours ago · Never contacted</div>' +
+      '</div>' +
+      '<div class="assign-row__controls">' +
+        '<select class="select select--sm" style="width:auto;" data-role="who">' +
+          coordOptions(sug) + '</select>' +
+        '<button class="btn btn--primary btn--sm" data-role="go">Assign</button>' +
+      '</div>' +
+    '</div>';
+  }
 
-    if (unassignedBadge) unassignedBadge.textContent = pool.length;
-    var tile = document.querySelector('.stat-tile--alert .stat-tile__value');
-    if (tile) tile.textContent = pool.length;
+  function doAssign(ptId, coordId) {
+    var co = UCM.coordinator(coordId);
+    var pt = UCM.assign(ptId, coordId, { priority: true });
+    if (!pt || !co) return;
+    UCM.toast('Assigned to ' + co.short,
+      pt.name + ' is now in ' + co.short.split(' ')[0] + "'s queue. They've been notified.", 'assign');
+  }
+
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-role="go"]');
+    if (!btn) return;
+    var row = btn.closest('[data-pt]');
+    doAssign(row.getAttribute('data-pt'), row.querySelector('[data-role="who"]').value);
+  });
+
+  function autoAssignAll() {
+    var n = UCM.unassigned().length;
+    if (!n) { UCM.toast('Nothing to assign', 'The unassigned queue is empty.', 'info'); return; }
+    var res = UCM.autoAssignAll();
+    UCM.toast('Auto-assigned ' + res.length + ' patient' + (res.length === 1 ? '' : 's'),
+      'Distributed by lowest caseload, skipping anyone on PTO. All coordinators notified.', 'assign');
+  }
+  $('dashAutoAssign').addEventListener('click', autoAssignAll);
+  $('asgAutoAll').addEventListener('click', autoAssignAll);
+
+  $('exportHuddle').addEventListener('click', function () {
+    var loads = UCM.caseloads();
+    var lines = ['UCM Care Coordination — Morning Huddle', 'Thursday, September 17, 2026', ''];
+    lines.push('Unassigned high-risk: ' + UCM.unassigned().length);
+    lines.push('');
+    loads.forEach(function (c) {
+      lines.push(c.coord.short + ' — ' + c.total + ' patients, ' + c.high + ' high risk, ' +
+        c.uncontacted + ' uncontacted' + (c.coord.away ? ' (PTO)' : ''));
+    });
+    UCM.toast('Huddle summary ready', lines.length + ' lines copied to console.', 'ok');
+    console.log(lines.join('\n'));
+  });
+
+  /* ═══════════════ NEEDS ASSIGNMENT ═══════════════ */
+  var selected = {};
+
+  function renderAssignment() {
+    var pool = UCM.unassigned();
+    var s = UCM.settings();
+
+    var overdue = pool.filter(function (p) { return p.hoursSince > s.contactWindowHours; });
+    var avgWait = pool.length
+      ? Math.round(pool.reduce(function (a, p) { return a + p.hoursSince; }, 0) / pool.length)
+      : 0;
+    var worst = pool.reduce(function (m, p) { return Math.max(m, p.hoursSince); }, 0);
+
+    $('asgKpis').innerHTML =
+      kpi('Unassigned', pool.length, 'awaiting an owner', pool.length ? 'red' : 'green', pool.length > 0) +
+      kpi('Past ' + s.contactWindowHours + 'h Window', overdue.length, 'contact window missed', overdue.length ? 'red' : 'green') +
+      kpi('Average Wait', avgWait + 'h', 'since discharge', 'amber') +
+      kpi('Longest Wait', worst + 'h', 'oldest in queue', 'red');
 
     if (!pool.length) {
-      assignList.innerHTML =
-        '<div style="padding:var(--space-8);text-align:center;">' +
-          '<div style="font-size:28px;margin-bottom:var(--space-3);">✓</div>' +
-          '<div style="font-weight:700;color:var(--risk-low-text);margin-bottom:4px;">' +
-            'Every high-risk patient has an owner</div>' +
-          '<div class="muted">No unassigned patients past the 24-hour threshold.</div>' +
-        '</div>';
+      $('asgBody').innerHTML = '<tr><td colspan="7">' +
+        '<div class="empty"><div class="empty__icon">✓</div>' +
+        '<div class="empty__title" style="color:var(--risk-low-text);">Queue is clear</div>' +
+        '<div class="empty__text">Every high-risk patient has a coordinator assigned. ' +
+        'New unassigned patients will appear here as they are discharged.</div></div></td></tr>';
+      $('asgBulkbar').classList.remove('show');
       return;
     }
 
-    assignList.innerHTML = pool.map(function (p) {
-      return '' +
-      '<div class="assign-row" data-pt="' + p.id + '">' +
-        '<span class="badge badge--high">' + p.score + '</span>' +
-        '<div class="assign-row__info">' +
-          '<div class="assign-row__name">' + esc(p.name) + '</div>' +
-          '<div class="assign-row__meta">MRN ' + p.mrn + ' · ' + p.age + p.sex + ' · ' +
-            esc(p.dx) + ' · Discharged ' + p.hoursSince + ' hours ago · Never contacted</div>' +
-        '</div>' +
-        '<div class="assign-row__controls">' +
+    var sug = UCM.suggestCoordinator();
+    $('asgBody').innerHTML = pool.map(function (p) {
+      var late = p.hoursSince > s.contactWindowHours;
+      return '<tr data-pt="' + p.id + '" class="row--high">' +
+        '<td class="checkcell"><input type="checkbox" data-sel="' + p.id + '"' +
+          (selected[p.id] ? ' checked' : '') + ' /></td>' +
+        '<td><div class="cell-name">' + esc(p.name) + '</div>' +
+          '<div class="cell-sub">MRN ' + p.mrn + ' · ' + p.age + p.sex + '</div></td>' +
+        '<td><span class="cell-score cell-score--high">' + p.score + '</span></td>' +
+        '<td>' + esc(p.dx) + '</td>' +
+        '<td>' + (late
+          ? '<span class="cell-unassigned">' + p.hoursSince + 'h — overdue</span>'
+          : '<span class="cell-muted">' + p.hoursSince + 'h</span>') + '</td>' +
+        '<td class="cell-action">' + esc(coordName(sug) || '—') + '</td>' +
+        '<td><div class="row row--tight row--center">' +
           '<select class="select select--sm" style="width:auto;" data-role="who">' +
-            coordOptions('sarah') +
-          '</select>' +
+            coordOptions(sug) + '</select>' +
           '<button class="btn btn--primary btn--sm" data-role="go">Assign</button>' +
+        '</div></td>' +
+      '</tr>';
+    }).join('');
+
+    syncBulkbar();
+  }
+
+  function syncBulkbar() {
+    var ids = Object.keys(selected).filter(function (k) { return selected[k]; });
+    $('asgSelCount').textContent = ids.length;
+    $('asgBulkbar').classList.toggle('show', ids.length > 0);
+    $('asgBulkWho').innerHTML = coordOptions(UCM.suggestCoordinator());
+    var all = UCM.unassigned();
+    var box = $('asgCheckAll');
+    if (box) box.checked = all.length > 0 && ids.length === all.length;
+  }
+
+  $('asgBody').addEventListener('change', function (e) {
+    var cb = e.target.closest('[data-sel]');
+    if (!cb) return;
+    selected[cb.getAttribute('data-sel')] = cb.checked;
+    syncBulkbar();
+  });
+  $('asgCheckAll').addEventListener('change', function (e) {
+    UCM.unassigned().forEach(function (p) { selected[p.id] = e.target.checked; });
+    renderAssignment();
+  });
+  $('asgBulkClear').addEventListener('click', function () {
+    selected = {}; renderAssignment();
+  });
+  $('asgBulkGo').addEventListener('click', function () {
+    var coordId = $('asgBulkWho').value;
+    var ids = Object.keys(selected).filter(function (k) { return selected[k]; });
+    var co = UCM.coordinator(coordId);
+    var n = 0;
+    ids.forEach(function (id) { if (UCM.assign(id, coordId, { priority: true })) n++; });
+    selected = {};
+    UCM.toast('Assigned ' + n + ' to ' + (co ? co.short : 'coordinator'),
+      'All ' + n + ' patients are now in their queue and they have been notified.', 'assign');
+  });
+  $('asgSuggest').addEventListener('click', function () {
+    var pool = UCM.unassigned();
+    if (!pool.length) { UCM.toast('Nothing to suggest', 'Queue is empty.', 'info'); return; }
+    pool.forEach(function (p) { selected[p.id] = true; });
+    renderAssignment();
+    UCM.toast('All ' + pool.length + ' selected',
+      'Suggested owner is ' + coordName(UCM.suggestCoordinator()) +
+      ' — lowest current caseload. Adjust before assigning.', 'info');
+  });
+
+  /* ═══════════════ ALL PATIENTS ═══════════════ */
+  var patState = { q: '', filter: 'all', coord: '', sort: 'score', dir: -1, page: 0, per: 12 };
+
+  function patFiltered() {
+    var all = UCM.allPatients();
+    var q = patState.q.toLowerCase().trim();
+
+    var out = all.filter(function (p) {
+      if (q && !(p.name.toLowerCase().indexOf(q) > -1 ||
+                 p.mrn.indexOf(q) > -1 ||
+                 p.dx.toLowerCase().indexOf(q) > -1)) return false;
+      if (patState.coord && p.assignedTo !== patState.coord) return false;
+      switch (patState.filter) {
+        case 'high': case 'medium': case 'low': return p.tier === patState.filter;
+        case 'uncontacted': return !p.contacted;
+        case 'unassigned':  return !p.assignedTo;
+        default: return true;
+      }
+    });
+
+    var k = patState.sort, d = patState.dir;
+    out.sort(function (a, b) {
+      var av = a[k], bv = b[k];
+      if (k === 'assignedTo') { av = coordName(av) || 'zzz'; bv = coordName(bv) || 'zzz'; }
+      if (k === 'contacted')  { av = a.contacted ? 1 : 0; bv = b.contacted ? 1 : 0; }
+      if (typeof av === 'string') return av.localeCompare(bv) * d;
+      return ((av || 0) - (bv || 0)) * d;
+    });
+    return out;
+  }
+
+  function renderPatients() {
+    var rows = patFiltered();
+    var total = rows.length;
+    var pages = Math.max(1, Math.ceil(total / patState.per));
+    if (patState.page >= pages) patState.page = pages - 1;
+    var start = patState.page * patState.per;
+    var slice = rows.slice(start, start + patState.per);
+
+    $('patCount').textContent = total + ' of ' + UCM.allPatients().length + ' patients';
+    $('patPagerInfo').textContent = total
+      ? 'Showing ' + (start + 1) + '–' + Math.min(start + patState.per, total) + ' of ' + total
+      : 'No matching patients';
+    $('patPrev').disabled = patState.page === 0;
+    $('patNext').disabled = patState.page >= pages - 1;
+
+    var keep = $('patCoordFilter').value;
+    $('patCoordFilter').innerHTML = '<option value="">All coordinators</option>' +
+      UCM.caseloads().map(function (c) {
+        return '<option value="' + c.coord.id + '"' +
+          (c.coord.id === keep ? ' selected' : '') + '>' + esc(c.coord.short) + '</option>';
+      }).join('') +
+      '<option value="__none"' + (keep === '__none' ? ' selected' : '') + '>Unassigned</option>';
+
+    if (!slice.length) {
+      $('patBody').innerHTML = '<tr><td colspan="6"><div class="empty">' +
+        '<div class="empty__icon">🔍</div><div class="empty__title">No patients match</div>' +
+        '<div class="empty__text">Try clearing the search or switching filters.</div></div></td></tr>';
+      return;
+    }
+
+    $('patBody').innerHTML = slice.map(function (p) {
+      var who = coordName(p.assignedTo);
+      return '<tr data-pt="' + p.id + '" class="row--' + p.tier + '">' +
+        '<td><div class="cell-name">' + esc(p.name) + '</div>' +
+          '<div class="cell-sub">MRN ' + p.mrn + ' · ' + p.age + p.sex + '</div></td>' +
+        '<td><span class="cell-score cell-score--' + p.tier + '">' + p.score + '</span> ' +
+          tierBadge(p.tier) + '</td>' +
+        '<td>' + esc(p.dx) + '</td>' +
+        '<td class="cell-muted">' + p.daysSince + 'd ago</td>' +
+        '<td>' + (who ? esc(who) : '<span class="cell-unassigned">Unassigned</span>') + '</td>' +
+        '<td>' + (p.contacted
+          ? '<span class="cell-muted">' + esc(p.lastOutcome || 'Contacted') + '</span>'
+          : '<span class="cell-unassigned">Never</span>') + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  $('patSearch').addEventListener('input', function (e) {
+    patState.q = e.target.value; patState.page = 0; renderPatients();
+  });
+  $('patChips').addEventListener('click', function (e) {
+    var chip = e.target.closest('.chip'); if (!chip) return;
+    $('patChips').querySelectorAll('.chip').forEach(function (c) { c.classList.remove('active'); });
+    chip.classList.add('active');
+    patState.filter = chip.getAttribute('data-filter'); patState.page = 0; renderPatients();
+  });
+  $('patCoordFilter').addEventListener('change', function (e) {
+    patState.coord = e.target.value === '__none' ? null : e.target.value;
+    if (e.target.value === '__none') { patState.filter = 'unassigned'; patState.coord = ''; }
+    patState.page = 0; renderPatients();
+  });
+  document.querySelectorAll('#view-patients th.sortable').forEach(function (th) {
+    th.addEventListener('click', function () {
+      var k = th.getAttribute('data-sort');
+      if (patState.sort === k) patState.dir *= -1;
+      else { patState.sort = k; patState.dir = (k === 'score') ? -1 : 1; }
+      document.querySelectorAll('#view-patients th.sortable').forEach(function (o) {
+        o.classList.remove('asc', 'desc');
+      });
+      th.classList.add(patState.dir === 1 ? 'asc' : 'desc');
+      renderPatients();
+    });
+  });
+  $('patPrev').addEventListener('click', function () {
+    if (patState.page > 0) { patState.page--; renderPatients(); }
+  });
+  $('patNext').addEventListener('click', function () {
+    patState.page++; renderPatients();
+  });
+
+  /* ═══════════════ COORDINATORS ═══════════════ */
+  function renderCoordinators() {
+    var loads = UCM.caseloads();
+    var over = loads.filter(function (c) { return c.overBy > 0; });
+
+    $('coordAlert').innerHTML = over.length ? '' +
+      '<div class="alert alert--warning">' +
+        '<span class="alert__icon">🟡</span>' +
+        '<div><div class="alert__title">' + over.length + ' coordinator' +
+          (over.length === 1 ? ' is' : 's are') + ' over capacity</div>' +
+          '<div class="alert__body">' +
+            over.map(function (c) { return esc(c.coord.short) + ' (+' + c.overBy + ')'; }).join(', ') +
+            '. Consider redistributing before assigning anyone new.</div></div>' +
+      '</div>' : '';
+
+    $('coordGrid').innerHTML = loads.map(function (c) {
+      var mc = meterClass(c.total, c.capacity);
+      return '<div class="coord-card' + (c.overBy ? ' coord-card--over' : '') +
+        (c.coord.away ? ' coord-card--away' : '') + '" data-coord="' + c.coord.id + '">' +
+        '<div class="coord-card__top">' +
+          '<div class="coord-card__avatar">' + initials(c.coord.name) + '</div>' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div class="coord-card__name">' + esc(c.coord.short) + '</div>' +
+            '<div class="coord-card__team">' + esc(c.coord.team) + '</div>' +
+          '</div>' +
+          (c.coord.away ? '<span class="badge badge--neutral">PTO</span>'
+            : c.overBy ? '<span class="badge badge--high">Over</span>' : '') +
+        '</div>' +
+        '<div class="coord-card__body">' +
+          '<div class="coord-card__stats">' +
+            '<div><div class="coord-stat__num">' + c.total + '</div>' +
+              '<div class="coord-stat__lbl">Caseload</div></div>' +
+            '<div><div class="coord-stat__num" style="color:var(--risk-high-text);">' + c.high + '</div>' +
+              '<div class="coord-stat__lbl">High Risk</div></div>' +
+            '<div><div class="coord-stat__num" style="color:' +
+              (c.uncontacted ? 'var(--risk-medium-text)' : 'var(--risk-low-text)') + ';">' +
+              c.uncontacted + '</div>' +
+              '<div class="coord-stat__lbl">Uncontacted</div></div>' +
+          '</div>' +
+          '<div class="meter"><div class="meter__fill meter__fill--' + mc +
+            '" style="width:' + Math.min(100, c.total / c.capacity * 100) + '%"></div></div>' +
+          '<div class="meter__label"><span>' + c.total + ' of ' + c.capacity + ' capacity</span>' +
+            '<span>' + (c.contactRate == null ? '—' : c.contactRate + '% contact rate') + '</span></div>' +
+        '</div>' +
+        '<div class="coord-card__foot">' +
+          '<span class="muted">Click to view caseload</span>' +
+          '<span style="color:#2F5580;font-weight:700;">View →</span>' +
         '</div>' +
       '</div>';
     }).join('');
   }
 
-  assignList.addEventListener('click', function (e) {
-    var btn = e.target.closest('[data-role="go"]');
-    if (!btn) return;
-    var row = btn.closest('.assign-row');
-    var ptId = row.getAttribute('data-pt');
-    var coordId = row.querySelector('[data-role="who"]').value;
-    var co = UCM.coordinator(coordId);
-
-    var pt = UCM.assign(ptId, coordId, { priority: true });
-    if (!pt) return;
-
-    UCM.toast('Assigned to ' + co.short,
-      pt.name + ' is now in ' + co.short.split(' ')[0] + "'s queue. They've been notified.",
-      'assign');
+  $('coordGrid').addEventListener('click', function (e) {
+    var card = e.target.closest('[data-coord]');
+    if (card) openCoordDrawer(card.getAttribute('data-coord'));
+  });
+  $('dashCaseload').addEventListener('click', function (e) {
+    var row = e.target.closest('[data-coord]');
+    if (row) openCoordDrawer(row.getAttribute('data-coord'));
   });
 
-  /* ─── Message composer ──────────────────────────── */
+  /* ═══════════════ MESSAGING ═══════════════ */
   function renderComposer() {
-    var keepTo = msgTo.value;
-    msgTo.innerHTML = coordOptions(keepTo || 'sarah');
-
-    var keepPt = msgPatient.value;
-    var all = UCM.getState().pool;
-    msgPatient.innerHTML = '<option value="">— None —</option>' + all.map(function (p) {
-      var who = p.assignedTo ? UCM.coordinator(p.assignedTo) : null;
-      return '<option value="' + p.id + '"' + (p.id === keepPt ? ' selected' : '') + '>' +
-        esc(p.name) + ' · ' + esc(p.dx) +
-        (who ? ' (' + esc(who.short) + ')' : ' (unassigned)') + '</option>';
-    }).join('');
+    var keepTo = $('msgTo').value;
+    $('msgTo').innerHTML = coordOptions(keepTo || 'sarah');
+    var keepPt = $('msgPatient').value;
+    $('msgPatient').innerHTML = '<option value="">— None —</option>' +
+      UCM.allPatients().sort(function (a, b) { return b.score - a.score; })
+        .map(function (p) {
+          var who = coordName(p.assignedTo);
+          return '<option value="' + p.id + '"' + (p.id === keepPt ? ' selected' : '') + '>' +
+            esc(p.name) + ' · ' + esc(p.dx) + (who ? ' (' + esc(who) + ')' : ' (unassigned)') +
+          '</option>';
+        }).join('');
   }
 
-  document.getElementById('msgSend').addEventListener('click', function () {
-    var body = msgBody.value.trim();
-    if (!body) { msgBody.focus(); return; }
-    var coordId = msgTo.value;
-    var ptId = msgPatient.value || null;
+  $('msgSend').addEventListener('click', function () {
+    var body = $('msgBody').value.trim();
+    if (!body) { $('msgBody').focus(); return; }
+    var coordId = $('msgTo').value;
+    var ptId = $('msgPatient').value || null;
     var ptName = null;
     if (ptId) {
-      UCM.getState().pool.forEach(function (p) { if (p.id === ptId) ptName = p.name; });
+      UCM.allPatients().forEach(function (p) { if (p.id === ptId) ptName = p.name; });
     }
     UCM.message(coordId, body, {
-      priority: msgPriority.checked,
-      patientId: ptId,
-      patientName: ptName
+      priority: $('msgPriority').checked, patientId: ptId, patientName: ptName
     });
-    msgBody.value = '';
-    msgPriority.checked = false;
+    $('msgBody').value = '';
+    $('msgPriority').checked = false;
     UCM.toast('Message sent', 'Delivered to ' + UCM.coordinator(coordId).short + '.', 'ok');
   });
 
-  /* ─── Activity feed ─────────────────────────────── */
-  function feedDotClass(verb) {
-    if (verb === 'assigned' || verb === 'unassigned') return 'feed__dot--assign';
-    if (verb === 'logged call') return 'feed__dot--call';
-    if (verb === 'messaged') return 'feed__dot--msg';
-    return '';
+  /* ═══════════════ PERFORMANCE ═══════════════ */
+  function renderPerformance() {
+    var loads = UCM.caseloads();
+
+    $('perfRates').innerHTML = loads.map(function (c) {
+      var r = c.contactRate;
+      var color = r == null ? 'var(--gray-300)'
+        : r >= 80 ? 'var(--risk-low-dot)'
+        : r >= 60 ? 'var(--risk-medium-dot)' : 'var(--risk-high-dot)';
+      return '<div class="hbar">' +
+        '<div class="hbar__label">' + esc(c.coord.short) + '</div>' +
+        '<div class="hbar__track"><div class="hbar__fill" style="width:' +
+          (r || 0) + '%;background:' + color + ';">' + (r == null ? '' : r + '%') + '</div></div>' +
+        '<div class="hbar__val">' + (r == null ? '—' : r + '%') + '</div>' +
+      '</div>';
+    }).join('') +
+    '<div class="alert alert--info" style="margin-top:var(--space-4);margin-bottom:0;">' +
+      '<span class="alert__icon">🔵</span><div>' +
+      '<div class="alert__title">Target is 80%</div>' +
+      '<div class="alert__body">Rate counts only patients already past the contact window, ' +
+      'so recently discharged patients do not penalize the number.</div></div></div>';
+
+    var maxLoad = Math.max.apply(null, loads.map(function (c) {
+      return Math.max(c.total, c.capacity);
+    }));
+    $('perfLoads').innerHTML = loads.map(function (c) {
+      var mc = meterClass(c.total, c.capacity);
+      var color = mc === 'over' ? 'var(--risk-high-dot)'
+        : mc === 'near' ? 'var(--risk-medium-dot)' : '#2F5580';
+      return '<div class="hbar">' +
+        '<div class="hbar__label">' + esc(c.coord.short) +
+          (c.coord.away ? ' <span class="muted">(PTO)</span>' : '') + '</div>' +
+        '<div class="hbar__track"><div class="hbar__fill" style="width:' +
+          (c.total / maxLoad * 100) + '%;background:' + color + ';">' + c.total + '</div></div>' +
+        '<div class="hbar__val">' + (c.overBy ? '+' + c.overBy : 'ok') + '</div>' +
+      '</div>';
+    }).join('');
+
+    $('recUnified').textContent = UCM.allPatients().length;
+    renderFeed();
   }
-  function feedIcon(verb) {
-    return { 'assigned': '👤', 'unassigned': '↩', 'logged call': '📞',
-             'messaged': '💬', 'acknowledged': '✓' }[verb] || '•';
+
+  $('perfResync').addEventListener('click', function () {
+    UCM.toast('Resync requested', 'Epic sync job queued. Typically completes in 10–15 minutes.', 'info');
+  });
+
+  function feedMeta(verb) {
+    return {
+      'assigned':      ['feed__dot--assign', '👤'],
+      'unassigned':    ['feed__dot--assign', '↩'],
+      'logged call':   ['feed__dot--call',   '📞'],
+      'messaged':      ['feed__dot--msg',    '💬'],
+      'acknowledged':  ['',                  '✓'],
+      'updated settings': ['',               '⚙️']
+    }[verb] || ['', '•'];
   }
 
   function renderFeed() {
     var items = UCM.activity();
+    var el = $('activityFeed');
+    if (!el) return;
+    $('perfActCount').textContent = items.length + ' event' + (items.length === 1 ? '' : 's');
     if (!items.length) {
-      feed.innerHTML = '<div class="feed__empty">No activity yet this session.<br />' +
+      el.innerHTML = '<div class="feed__empty">No activity yet this session.<br />' +
         'Assign a patient or send a message to see it here.</div>';
       return;
     }
-    feed.innerHTML = items.map(function (a) {
-      return '' +
-      '<div class="feed__item">' +
-        '<div class="feed__dot ' + feedDotClass(a.verb) + '">' + feedIcon(a.verb) + '</div>' +
+    el.innerHTML = items.map(function (a) {
+      var m = feedMeta(a.verb);
+      return '<div class="feed__item">' +
+        '<div class="feed__dot ' + m[0] + '">' + m[1] + '</div>' +
         '<div class="feed__text"><strong>' + esc(a.actorName) + '</strong> ' +
           esc(a.verb) + ' ' + esc(a.detail) + '</div>' +
         '<div class="feed__time">' + UCM.relTime(a.ts) + '</div>' +
@@ -736,28 +1367,254 @@
     }).join('');
   }
 
-  /* ─── Wire up ───────────────────────────────────── */
-  function renderAll() { renderAssign(); renderComposer(); renderFeed(); }
+  /* ═══════════════ SETTINGS ═══════════════ */
+  var BOUNDS = {
+    highThreshold:      [50, 95],
+    mediumThreshold:    [10, 70],
+    defaultCapacity:    [5, 40],
+    contactWindowHours: [12, 120]
+  };
 
-  UCM.subscribe(function (state, evt) {
-    renderAll();
-    // Surface coordinator actions coming from the other tab
-    if (evt && evt.remote && evt.type === 'sync') return;
-    if (evt && evt.type === 'call') {
-      UCM.toast('Call logged', 'A coordinator just logged an outcome.', 'ok');
+  function renderSettings() {
+    var s = UCM.settings();
+    var all = UCM.allPatients();
+    $('setHighVal').textContent = s.highThreshold;
+    $('setMedVal').textContent  = s.mediumThreshold;
+    $('setCapVal').textContent  = s.defaultCapacity;
+    $('setWinVal').textContent  = s.contactWindowHours;
+    $('setNotify').checked = !!s.notifyOnUnassigned;
+
+    $('setHighCount').textContent = all.filter(function (p) { return p.tier === 'high'; }).length;
+    $('setMedCount').textContent  = all.filter(function (p) { return p.tier === 'medium'; }).length;
+    $('setOverCount').textContent = UCM.caseloads().filter(function (c) { return c.overBy > 0; }).length;
+    $('setStorage').textContent = UCM.storageAvailable
+      ? 'localStorage — state persists across reloads and syncs to other open tabs.'
+      : 'In-memory fallback — localStorage is blocked, so state will not persist or sync between tabs.';
+  }
+
+  document.querySelectorAll('[data-step]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var key = btn.getAttribute('data-step');
+      var dir = parseInt(btn.getAttribute('data-dir'), 10);
+      var s = UCM.settings();
+      var step = (key === 'contactWindowHours') ? 6 : 1;
+      var next = s[key] + dir * step;
+      var b = BOUNDS[key];
+      if (next < b[0] || next > b[1]) return;
+      if (key === 'highThreshold' && next <= s.mediumThreshold + 5) return;
+      if (key === 'mediumThreshold' && next >= s.highThreshold - 5) return;
+      var patch = {}; patch[key] = next;
+      UCM.updateSettings(patch);
+    });
+  });
+
+  $('setNotify').addEventListener('change', function (e) {
+    UCM.updateSettings({ notifyOnUnassigned: e.target.checked });
+  });
+
+  function resetAll() {
+    UCM.reset();
+    selected = {};
+    patState.q = ''; patState.page = 0; patState.filter = 'all'; patState.coord = '';
+    $('patSearch').value = '';
+    UCM.toast('Demo reset', 'All assignments, messages, and settings restored to defaults.', 'info');
+  }
+  $('setReset').addEventListener('click', resetAll);
+  $('demoReset').addEventListener('click', resetAll);
+
+  /* ═══════════════ DRAWER ═══════════════ */
+  function openDrawer() {
+    $('drawer').classList.add('open');
+    $('scrim').classList.add('open');
+  }
+  function closeDrawer() {
+    $('drawer').classList.remove('open');
+    $('scrim').classList.remove('open');
+  }
+  $('drClose').addEventListener('click', closeDrawer);
+  $('scrim').addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeDrawer();
+  });
+
+  function openPatientDrawer(id) {
+    var p = UCM.allPatients().filter(function (x) { return x.id === id; })[0];
+    if (!p) return;
+    var who = coordName(p.assignedTo);
+    var epic = p.epicPts != null ? p.epicPts : Math.round(p.score * 0.58);
+    var sfdc = p.score - epic;
+
+    $('drTitle').innerHTML = esc(p.name) + ' ' + tierBadge(p.tier);
+    $('drSub').textContent = 'MRN ' + p.mrn + ' · ' + p.age + p.sex + ' · ' + p.dx;
+
+    $('drBody').innerHTML = '' +
+      '<div class="section-label">Unified risk score</div>' +
+      '<div class="row row--center" style="gap:var(--space-5);background:var(--gray-100);' +
+        'padding:var(--space-4);border-radius:var(--radius-md);margin-bottom:var(--space-5);">' +
+        '<div style="text-align:center;"><div style="font-size:18px;font-weight:800;color:var(--sys-epic);">' +
+          epic + '</div><div class="coord-stat__lbl">Epic</div></div>' +
+        '<div style="color:var(--gray-300);">+</div>' +
+        '<div style="text-align:center;"><div style="font-size:18px;font-weight:800;color:var(--sys-sfdc);">' +
+          sfdc + '</div><div class="coord-stat__lbl">Salesforce</div></div>' +
+        '<div style="color:var(--gray-300);">=</div>' +
+        '<div style="text-align:center;"><div style="font-size:26px;font-weight:800;color:var(--ucm-maroon);">' +
+          p.score + '</div><div class="coord-stat__lbl">Unified</div></div>' +
+      '</div>' +
+
+      '<div class="section-label">Record</div>' +
+      '<div class="kv-grid" style="margin-bottom:var(--space-5);">' +
+        kv('Diagnosis', esc(p.dx), 'epic') +
+        kv('Discharged', p.daysSince + ' days ago', 'epic') +
+        kv('Coordinator', who ? esc(who) : '<span style="color:var(--risk-high-text);">Unassigned</span>', 'sfdc') +
+        kv('Last contact', p.contacted ? esc(p.lastOutcome || 'Contacted') :
+          '<span style="color:var(--risk-high-text);">Never</span>', 'sfdc') +
+        kv('Risk tier', p.tier.charAt(0).toUpperCase() + p.tier.slice(1), 'sfdc') +
+        kv('Hours since', p.hoursSince + 'h', 'epic') +
+      '</div>' +
+
+      (!p.contacted && p.tier === 'high' ? '<div class="alert alert--error" style="margin-bottom:0;">' +
+        '<span class="alert__icon">🔴</span><div>' +
+        '<div class="alert__title">High risk and never contacted</div>' +
+        '<div class="alert__body">This is the highest-value intervention available. ' +
+        'Every hour past the contact window raises readmission probability.</div></div></div>' : '');
+
+    $('drFoot').innerHTML = p.assignedTo
+      ? '<button class="btn btn--secondary" data-dr="reassign">Reassign</button>' +
+        '<button class="btn btn--ghost" data-dr="message">Message ' +
+        esc((who || '').split(' ')[0]) + '</button>'
+      : '<select class="select select--sm" style="width:auto;" id="drWho">' + coordOptions(UCM.suggestCoordinator()) + '</select>' +
+        '<button class="btn btn--primary" data-dr="assign">Assign</button>';
+    $('drFoot').setAttribute('data-pt', p.id);
+
+    openDrawer();
+  }
+
+  function kv(label, value, src) {
+    return '<div class="kv-item"><div class="kv-item__label">' + label +
+      ' <span class="src src--' + src + '">' + (src === 'epic' ? 'Epic' : 'SFDC') + '</span></div>' +
+      '<div class="kv-item__value">' + value + '</div></div>';
+  }
+
+  function openCoordDrawer(coordId) {
+    var c = UCM.caseloads().filter(function (x) { return x.coord.id === coordId; })[0];
+    if (!c) return;
+    var mc = meterClass(c.total, c.capacity);
+
+    $('drTitle').innerHTML = esc(c.coord.short) +
+      (c.coord.away ? ' <span class="badge badge--neutral">PTO</span>' : '');
+    $('drSub').textContent = c.coord.team + ' · ' + c.total + ' patients';
+
+    var sorted = c.patients.slice().sort(function (a, b) { return b.score - a.score; });
+
+    $('drBody').innerHTML = '' +
+      '<div class="coord-card__stats" style="margin-bottom:var(--space-4);">' +
+        '<div><div class="coord-stat__num">' + c.total + '</div><div class="coord-stat__lbl">Caseload</div></div>' +
+        '<div><div class="coord-stat__num" style="color:var(--risk-high-text);">' + c.high +
+          '</div><div class="coord-stat__lbl">High Risk</div></div>' +
+        '<div><div class="coord-stat__num">' + (c.contactRate == null ? '—' : c.contactRate + '%') +
+          '</div><div class="coord-stat__lbl">Contact Rate</div></div>' +
+      '</div>' +
+      '<div class="meter"><div class="meter__fill meter__fill--' + mc + '" style="width:' +
+        Math.min(100, c.total / c.capacity * 100) + '%"></div></div>' +
+      '<div class="meter__label" style="margin-bottom:var(--space-5);">' +
+        '<span>' + c.total + ' of ' + c.capacity + ' capacity</span>' +
+        '<span>' + (c.overBy ? 'Over by ' + c.overBy : 'Within capacity') + '</span></div>' +
+
+      (c.uncontacted ? '<div class="alert alert--warning">' +
+        '<span class="alert__icon">🟡</span><div>' +
+        '<div class="alert__title">' + c.uncontacted + ' patient' +
+          (c.uncontacted === 1 ? '' : 's') + ' not yet contacted</div>' +
+        '<div class="alert__body">Listed first below.</div></div></div>' : '') +
+
+      '<div class="section-label">Caseload — highest risk first</div>' +
+      (sorted.length ? sorted.map(function (p) {
+        return '<div class="prov-factor" data-pt="' + p.id + '" style="cursor:pointer;">' +
+          '<div class="prov-factor__body">' +
+            '<div class="prov-factor__text"><strong>' + esc(p.name) + '</strong> · ' + esc(p.dx) + '</div>' +
+            '<div class="prov-factor__foot">' + tierBadge(p.tier) +
+              '<span class="prov-factor__weight">Score ' + p.score + '</span>' +
+              (p.contacted ? '<span class="muted" style="font-size:10px;">' +
+                esc(p.lastOutcome || 'Contacted') + '</span>'
+                : '<span style="font-size:10px;font-weight:700;color:var(--risk-high-text);">NEVER CONTACTED</span>') +
+            '</div>' +
+          '</div></div>';
+      }).join('') : '<div class="muted">No patients assigned.</div>');
+
+    $('drFoot').innerHTML =
+      '<button class="btn btn--primary" data-dr="msgcoord" data-coord="' + c.coord.id + '">Message ' +
+        esc(c.coord.short.split(' ')[0]) + '</button>' +
+      '<button class="btn btn--ghost" id="drCloseAlt">Close</button>';
+    $('drFoot').removeAttribute('data-pt');
+    var alt = $('drCloseAlt');
+    if (alt) alt.addEventListener('click', closeDrawer);
+
+    openDrawer();
+  }
+
+  // Drill into a patient from anywhere
+  ['patBody', 'drBody'].forEach(function (hostId) {
+    var host = $(hostId);
+    if (!host) return;
+    host.addEventListener('click', function (e) {
+      if (e.target.closest('input, select, button')) return;
+      var row = e.target.closest('[data-pt]');
+      if (row) openPatientDrawer(row.getAttribute('data-pt'));
+    });
+  });
+
+  $('drFoot').addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-dr]');
+    if (!btn) return;
+    var action = btn.getAttribute('data-dr');
+    var ptId = $('drFoot').getAttribute('data-pt');
+
+    if (action === 'assign') {
+      var who = $('drWho');
+      if (who && ptId) { doAssign(ptId, who.value); closeDrawer(); }
+    }
+    if (action === 'reassign') {
+      if (ptId) { UCM.unassign(ptId); closeDrawer();
+        UCM.toast('Returned to queue', 'Patient is unassigned and back in the assignment queue.', 'info'); }
+    }
+    if (action === 'message' || action === 'msgcoord') {
+      closeDrawer();
+      go('coordinators');
+      var coordId = btn.getAttribute('data-coord');
+      if (coordId) $('msgTo').value = coordId;
+      if (ptId) $('msgPatient').value = ptId;
+      setTimeout(function () { $('msgBody').focus(); }, 300);
     }
   });
 
-  // Cross-tab: coordinator actions arrive via storage event
-  window.addEventListener('storage', function () { renderAll(); });
+  /* ═══════════════ render orchestration ═══════════════ */
+  function render() {
+    var active = document.querySelector('.view.active');
+    var id = active ? active.id.replace('view-', '') : 'dashboard';
 
-  document.getElementById('demoReset').addEventListener('click', function () {
-    UCM.reset();
-    UCM.toast('Demo reset', 'Session state cleared.', 'info');
+    // Nav counts are always live
+    $('navUnassigned').textContent = UCM.unassigned().length;
+    $('navPatients').textContent = UCM.allPatients().length;
+    $('navCoords').textContent = UCM.caseloads().length;
+    $('navUnassigned').style.display = UCM.unassigned().length ? '' : 'none';
+
+    if (id === 'dashboard')    renderDashboard();
+    if (id === 'assignment')   renderAssignment();
+    if (id === 'patients')     renderPatients();
+    if (id === 'coordinators') { renderCoordinators(); renderComposer(); }
+    if (id === 'performance')  renderPerformance();
+    if (id === 'settings')     renderSettings();
+  }
+
+  UCM.subscribe(function (state, evt) {
+    render();
+    if (evt && evt.type === 'call' && evt.remote !== true) {
+      UCM.toast('Call logged', 'A coordinator just logged an outcome.', 'ok');
+    }
   });
+  window.addEventListener('storage', render);
+  setInterval(renderFeed, 30000);
 
-  setInterval(renderFeed, 30000); // keep relative timestamps honest
-  renderAll();
+  go((location.hash || '#dashboard').slice(1), false);
 })();
 </script>
 
