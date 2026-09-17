@@ -2,6 +2,7 @@ import { CssBaseline, ThemeProvider } from '@mui/material'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import type { ReactNode } from 'react'
 import { CoordinatorPage } from '@/features/coordinator/CoordinatorPage'
+import { ManagerLayout } from '@/features/manager/ManagerLayout'
 import { createUcmTheme } from '@/theme/theme'
 import { GlobalStyles } from '@/theme/GlobalStyles'
 import { ToastProvider } from '@/ui/toast'
@@ -41,16 +42,11 @@ export function App() {
               </Role>
             }
           />
-          {/* Phase 2 and 3. */}
           <Route
             path="/manager/*"
             element={
               <Role role="manager">
-                <ComingSoon
-                  title="Manager Dashboard"
-                  phase="Phase 2"
-                  legacyHref="/legacy/manager.html"
-                />
+                <ManagerLayout />
               </Role>
             }
           />
