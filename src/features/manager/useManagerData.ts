@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { daysSince, tierFor } from '@/data/invariants'
 import { useSessionSelector } from '@/session/react'
+import { initials } from '@/util/initials'
 import { selectCaseloads, selectSuggestedCoordinator, shallowArrayEqual } from '@/session/selectors'
 import type { Caseload, CoordinatorId, Patient, RiskTier, SessionState } from '@/session/types'
 
@@ -79,12 +80,4 @@ export function useManagerOverview(): ManagerOverview {
   }, [state, caseloads, suggested])
 }
 
-export function initials(name: string): string {
-  return name
-    .replace(/,.*$/, '')
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0] ?? '')
-    .join('')
-    .toUpperCase()
-}
+export { initials }

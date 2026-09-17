@@ -13,6 +13,16 @@ import type { CoordinatorId, Mrn, Patient, RiskTier } from '@/session/types'
  * wrong when the coordinator page and the manager roster each kept their own
  * copy of these nine patients.
  */
+/**
+ * Why a patient still needs a call.
+ * - `never-contacted`: no outreach logged since discharge
+ * - `retry`: an attempt was logged but nobody was actually reached
+ */
+export type CallbackReason = 'never-contacted' | 'retry' | null
+
+/** Outcomes that record an attempt without reaching the patient. */
+const NO_CONTACT_OUTCOMES = new Set(['Left voicemail', 'No answer'])
+
 export interface CaseloadRow {
   patient: Patient
   /** Derived from score + live thresholds. Never stored on the patient. */
@@ -22,18 +32,26 @@ export interface CaseloadRow {
   detail: PatientDetail | undefined
   /** Arrived during this session — drives the arrival highlight. */
   isNew: boolean
+  callback: CallbackReason
+  /** Needs a call AND is already past the contact window. */
+  overdue: boolean
 }
 
 export interface Caseload {
   rows: readonly CaseloadRow[]
   byMrn: ReadonlyMap<Mrn, CaseloadRow>
   total: number
+  /** Everyone still owed a call, most urgent first. */
+  callbacks: readonly CaseloadRow[]
   counts: {
     high: number
     medium: number
     low: number
     uncontacted: number
     unacknowledged: number
+    callbacks: number
+    overdue: number
+    retry: number
   }
 }
 
@@ -52,18 +70,37 @@ export function useCaseload(me: CoordinatorId): Caseload {
   return useMemo(() => {
     const rows: CaseloadRow[] = [...mine]
       .sort((a, b) => b.score - a.score)
-      .map((patient) => ({
-        patient,
-        tier: tierFor(patient.score, settings),
-        days: daysSince(patient.hoursSince),
-        detail: DETAIL_BY_MRN.get(patient.mrn),
-        isNew: patient.assignedAt != null && patient.assignedAt > openedAt,
-      }))
+      .map((patient) => {
+        const callback: CallbackReason = !patient.contacted
+          ? 'never-contacted'
+          : NO_CONTACT_OUTCOMES.has(patient.lastOutcome ?? '')
+            ? 'retry'
+            : null
+        return {
+          patient,
+          tier: tierFor(patient.score, settings),
+          days: daysSince(patient.hoursSince),
+          detail: DETAIL_BY_MRN.get(patient.mrn),
+          isNew: patient.assignedAt != null && patient.assignedAt > openedAt,
+          callback,
+          overdue: callback !== null && patient.hoursSince >= settings.contactWindowHours,
+        }
+      })
+
+    // Overdue first, then never-contacted before retries, then by risk.
+    const callbacks = rows
+      .filter((r) => r.callback !== null)
+      .sort((a, b) => {
+        if (a.overdue !== b.overdue) return a.overdue ? -1 : 1
+        if (a.callback !== b.callback) return a.callback === 'never-contacted' ? -1 : 1
+        return b.patient.score - a.patient.score
+      })
 
     return {
       rows,
       byMrn: new Map(rows.map((r) => [r.patient.mrn, r])),
       total: rows.length,
+      callbacks,
       counts: {
         high: rows.filter((r) => r.tier === 'high').length,
         medium: rows.filter((r) => r.tier === 'medium').length,
@@ -72,6 +109,9 @@ export function useCaseload(me: CoordinatorId): Caseload {
         unacknowledged: rows.filter(
           (r) => r.patient.assignedAt != null && r.patient.acknowledged === false,
         ).length,
+        callbacks: callbacks.length,
+        overdue: callbacks.filter((r) => r.overdue).length,
+        retry: callbacks.filter((r) => r.callback === 'retry').length,
       },
     }
   }, [mine, settings, openedAt])

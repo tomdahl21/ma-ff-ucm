@@ -1,7 +1,7 @@
 import { CssBaseline, ThemeProvider } from '@mui/material'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import type { ReactNode } from 'react'
-import { CoordinatorPage } from '@/features/coordinator/CoordinatorPage'
+import { CoordinatorLayout } from '@/features/coordinator/CoordinatorLayout'
 import { ManagerLayout } from '@/features/manager/ManagerLayout'
 import { createUcmTheme } from '@/theme/theme'
 import { GlobalStyles } from '@/theme/GlobalStyles'
@@ -35,10 +35,10 @@ export function App() {
         <Routes>
           <Route path="/" element={<Launcher />} />
           <Route
-            path="/coordinator"
+            path="/coordinator/*"
             element={
               <Role role="coordinator">
-                <CoordinatorPage />
+                <CoordinatorLayout />
               </Role>
             }
           />
