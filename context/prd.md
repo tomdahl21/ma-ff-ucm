@@ -54,7 +54,7 @@ The initial version targets the most impactful moment in the readmission cycle: 
 
 ## 4. Personas
 
-Full detail in [personas.html](personas.html).
+Full detail in [personas.html](design/personas.html).
 
 | Persona | Role | Priority | Core Need |
 |---|---|---|---|
