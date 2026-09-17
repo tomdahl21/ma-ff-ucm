@@ -148,6 +148,16 @@
       messages: [],
       activity: [],
       settings: JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),
+      alerts: [{
+        id: 'alert-washington',
+        patientId: 'washington',
+        patientName: 'Darnell Washington',
+        type: 'repeat-ed-encounter',
+        active: true,
+        createdAt: Date.now(),
+        epicMessage: 'Epic chart alert: patient returned to the ED within 30 days after prior high-risk discharge triage; same-day outreach is required.',
+        portalMessage: 'Care coordination portal alert: Darnell Washington reappeared in the ED and requires same-day follow-up.'
+      }],
       startedAt: Date.now()
     };
   }
@@ -173,6 +183,7 @@
       if (!parsed.settings) parsed.settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
       if (!parsed.activity) parsed.activity = [];
       if (!parsed.messages) parsed.messages = [];
+      if (!parsed.alerts) parsed.alerts = [];
       return parsed;
     } catch (e) {
       return memory || (memory = freshState());
@@ -280,6 +291,62 @@
     },
 
     activity: function () { return read().activity; },
+
+    reentryAlert: function (patientId) {
+      var state = read();
+      var alerts = (state.alerts || []).filter(function (a) {
+        return a.patientId === patientId && a.active !== false;
+      });
+      if (!alerts.length) return null;
+      alerts.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+      return alerts[0];
+    },
+
+    recordEDReentry: function (patientId, coordId, opts) {
+      opts = opts || {};
+      var state = read();
+      var patientName = opts.patientName || null;
+      var pt = null;
+      for (var i = 0; i < state.pool.length; i++) {
+        if (state.pool[i].id === patientId) { pt = state.pool[i]; break; }
+      }
+      if (!patientName && pt) patientName = pt.name;
+      if (!patientName && coordId) {
+        var rosterMatch = ROSTER.filter(function (p) { return p.id === patientId; })[0];
+        if (rosterMatch) patientName = rosterMatch.name;
+      }
+      var alert = {
+        id: uid('alert'),
+        patientId: patientId,
+        patientName: patientName || patientId,
+        type: 'repeat-ed-encounter',
+        active: true,
+        createdAt: Date.now(),
+        epicMessage: opts.epicMessage || 'Epic chart alert: patient returned to the ED after prior readmission triage involvement; escalation is required.',
+        portalMessage: opts.portalMessage || 'Care coordination portal alert: same-day follow-up required for repeat ED re-entry.'
+      };
+      state.alerts = (state.alerts || []).filter(function (a) { return a.patientId !== patientId; });
+      state.alerts.unshift(alert);
+      if (pt) pt.reentryAlert = alert;
+      var co = coordinator(coordId);
+      if (coordId && co) {
+        state.messages.unshift({
+          id: uid('m'), ts: Date.now(),
+          from: MANAGER.id, fromName: MANAGER.name,
+          to: coordId,
+          patientId: patientId,
+          patientName: alert.patientName,
+          kind: 'message',
+          priority: true,
+          body: alert.portalMessage,
+          read: false
+        });
+      }
+      logActivity(state, co ? co.short : 'Epic', 'flagged ED re-entry',
+        alert.patientName + ' — repeat ED encounter after prior triage', patientId);
+      commit(state, { type: 'reentry-alert', patientId: patientId, coordId: coordId || null });
+      return alert;
+    },
 
     settings: function () { return read().settings; },
 

@@ -729,8 +729,26 @@ textarea.input { resize: vertical; min-height: 72px; line-height: 1.5; }
 .toast__bar { width: 4px; flex-shrink: 0; }
 .toast--info   .toast__bar { background: var(--info); }
 .toast--assign .toast__bar { background: var(--ucm-maroon); }
-.toast--urgent .toast__bar { background: var(--error); }
+.toast--urgent .toast__bar,
+.toast--alert .toast__bar { background: var(--error); }
 .toast--ok     .toast__bar { background: var(--success); }
+.toast--urgent,
+.toast--alert {
+  background: linear-gradient(180deg, #fff5f5 0%, #fff 100%);
+  border-color: rgba(198, 40, 40, 0.3);
+  box-shadow: 0 12px 30px rgba(130, 11, 37, 0.18);
+}
+.toast--urgent .toast__title,
+.toast--alert .toast__title {
+  color: var(--risk-high-text);
+  font-size: 14px;
+  letter-spacing: 0.1px;
+}
+.toast--urgent .toast__text,
+.toast--alert .toast__text {
+  color: #6b1622;
+  font-weight: 600;
+}
 .toast__body { flex: 1; padding: var(--space-3) var(--space-4); min-width: 0; }
 .toast__title { font-size: 13px; font-weight: 700; color: var(--gray-900); }
 .toast__text { font-size: 12px; color: var(--gray-700); margin-top: 2px; line-height: 1.45; }
