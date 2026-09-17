@@ -273,15 +273,17 @@
 
     /* ── Coordinator actions ─────────────────────── */
 
-    /** Log a call outcome. Propagates to the manager activity feed. */
-    logCall: function (patientId, coordId, outcome, note) {
+    /** Log a call outcome. Propagates to the manager activity feed.
+        patientName covers baseline-caseload patients, who live in the
+        coordinator's view rather than the assignable pool. */
+    logCall: function (patientId, coordId, outcome, note, patientName) {
       var state = read();
       var pt = null;
       for (var i = 0; i < state.pool.length; i++) {
         if (state.pool[i].id === patientId) { pt = state.pool[i]; break; }
       }
       var co = coordinator(coordId);
-      var name = pt ? pt.name : (patientId || 'patient');
+      var name = pt ? pt.name : (patientName || patientId || 'patient');
       if (pt) {
         pt.contacted = true;
         pt.lastOutcome = outcome;

@@ -50,6 +50,9 @@
     .score-math__num--total { color: var(--ucm-maroon); font-size: 26px; }
     .score-math__cap { font-size: 9px; color: var(--gray-500); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; }
     .score-math__op { font-size: 17px; color: var(--gray-300); font-weight: 300; }
+    .data-table tbody tr:focus-visible {
+      outline: 2px solid var(--ucm-maroon); outline-offset: -2px;
+    }
   </style>
 </head>
 <body>
@@ -238,403 +241,17 @@
                   <th>Next Action <span class="src src--agent">Agentforce</span></th>
                 </tr>
               </thead>
-              <tbody id="queueBody">
-                <tr class="row--high selected">
-                  <td><div class="cell-name">Darnell Washington</div><div class="cell-sub">MRN 4820193 · 67M</div></td>
-                  <td><span class="badge badge--high">High</span></td>
-                  <td><span class="cell-score cell-score--high">88</span></td>
-                  <td>CHF Exacerbation</td>
-                  <td>3 days ago</td>
-                  <td class="cell-unassigned">Never</td>
-                  <td class="cell-action">📞 Call today</td>
-                </tr>
-                <tr class="row--high">
-                  <td><div class="cell-name">Robert Osei</div><div class="cell-sub">MRN 7730021 · 72M</div></td>
-                  <td><span class="badge badge--high">High</span></td>
-                  <td><span class="cell-score cell-score--high">84</span></td>
-                  <td>Sepsis Recovery</td>
-                  <td>1 day ago</td>
-                  <td class="cell-unassigned">Never</td>
-                  <td class="cell-action">📞 Call today</td>
-                </tr>
-                <tr class="row--high">
-                  <td><div class="cell-name">Gloria Mensah</div><div class="cell-sub">MRN 2214870 · 79F</div></td>
-                  <td><span class="badge badge--high">High</span></td>
-                  <td><span class="cell-score cell-score--high">81</span></td>
-                  <td>COPD Exacerbation</td>
-                  <td>2 days ago</td>
-                  <td class="cell-muted">Voicemail · 1d ago</td>
-                  <td class="cell-action">📞 Retry call</td>
-                </tr>
-                <tr class="row--high">
-                  <td><div class="cell-name">Curtis Bell</div><div class="cell-sub">MRN 9081234 · 58M</div></td>
-                  <td><span class="badge badge--high">High</span></td>
-                  <td><span class="cell-score cell-score--high">77</span></td>
-                  <td>Diabetic Ketoacidosis</td>
-                  <td>4 days ago</td>
-                  <td class="cell-muted">Reached · 2d ago</td>
-                  <td class="cell-action">💊 Confirm Rx pickup</td>
-                </tr>
-                <tr class="row--medium">
-                  <td><div class="cell-name">Maria Okonkwo</div><div class="cell-sub">MRN 3310485 · 54F</div></td>
-                  <td><span class="badge badge--medium">Medium</span></td>
-                  <td><span class="cell-score cell-score--medium">62</span></td>
-                  <td>COPD</td>
-                  <td>7 days ago</td>
-                  <td class="cell-muted">Reached · 4d ago</td>
-                  <td class="cell-action">📅 Schedule follow-up</td>
-                </tr>
-                <tr class="row--medium">
-                  <td><div class="cell-name">Thomas Nguyen</div><div class="cell-sub">MRN 6612098 · 61M</div></td>
-                  <td><span class="badge badge--medium">Medium</span></td>
-                  <td><span class="cell-score cell-score--medium">58</span></td>
-                  <td>Post-Op Cardiac</td>
-                  <td>5 days ago</td>
-                  <td class="cell-muted">Reached · 3d ago</td>
-                  <td class="cell-action">💬 Send SMS check-in</td>
-                </tr>
-                <tr class="row--medium">
-                  <td><div class="cell-name">Yolanda Pierce</div><div class="cell-sub">MRN 4471102 · 48F</div></td>
-                  <td><span class="badge badge--medium">Medium</span></td>
-                  <td><span class="cell-score cell-score--medium">51</span></td>
-                  <td>Cellulitis</td>
-                  <td>6 days ago</td>
-                  <td class="cell-muted">Reached · 5d ago</td>
-                  <td class="cell-action">📅 Schedule follow-up</td>
-                </tr>
-                <tr class="row--low">
-                  <td><div class="cell-name">Angela Torres</div><div class="cell-sub">MRN 5540882 · 44F</div></td>
-                  <td><span class="badge badge--low">Low</span></td>
-                  <td><span class="cell-score cell-score--low">22</span></td>
-                  <td>Appendectomy</td>
-                  <td>5 days ago</td>
-                  <td class="cell-muted">Reached · 4d ago</td>
-                  <td class="cell-action">✓ Monitor only</td>
-                </tr>
-                <tr class="row--low">
-                  <td><div class="cell-name">Michael Adeyemi</div><div class="cell-sub">MRN 1129334 · 39M</div></td>
-                  <td><span class="badge badge--low">Low</span></td>
-                  <td><span class="cell-score cell-score--low">17</span></td>
-                  <td>Laceration Repair</td>
-                  <td>8 days ago</td>
-                  <td class="cell-muted">Reached · 7d ago</td>
-                  <td class="cell-action">✓ Monitor only</td>
-                </tr>
-              </tbody>
+              <tbody id="queueBody"></tbody>
             </table>
           </div>
         </div>
       </div>
 
       <!-- ── DETAIL RAIL ───────────────────────────────── -->
+      <!-- Both panels render from the selected patient. See renderDetail(). -->
       <div class="detail-col">
-        <div class="panel">
-          <div class="detail-head">
-            <div class="row row--center" style="justify-content:space-between;">
-              <div>
-                <div class="detail-head__name">Darnell Washington</div>
-                <div class="detail-head__meta">MRN 4820193 · 67M · Discharged Sep 14</div>
-              </div>
-              <span class="badge badge--high">High Risk</span>
-            </div>
-            <div class="detail-score">
-              <div class="score-ring score-ring--high">88</div>
-              <div class="detail-score__meta">
-                <strong style="color:var(--gray-900);font-size:12px;">Readmission Risk Score</strong><br />
-                Source: Salesforce Data Cloud<br />
-                As of Sep 17, 9:42 AM · Model v2.3
-              </div>
-            </div>
-          </div>
-
-          <div class="tab-row">
-            <div class="tab active">Actions</div>
-            <div class="tab">Timeline</div>
-            <div class="tab">Details</div>
-          </div>
-
-          <!-- TAB: ACTIONS -->
-          <div class="tab-panel active">
-            <div class="panel__body">
-
-              <div class="sync-bar">
-                <span>⚠️</span> Epic data last synced 4h 12m ago — scores may be stale
-              </div>
-
-              <div class="section-label">How this score is composed</div>
-              <div class="score-math">
-                <div class="score-math__part">
-                  <div class="score-math__num score-math__num--epic">51</div>
-                  <div class="score-math__cap">Clinical<br/>Epic</div>
-                </div>
-                <div class="score-math__op">+</div>
-                <div class="score-math__part">
-                  <div class="score-math__num score-math__num--sfdc">37</div>
-                  <div class="score-math__cap">Engagement<br/>Salesforce</div>
-                </div>
-                <div class="score-math__op">=</div>
-                <div class="score-math__part">
-                  <div class="score-math__num score-math__num--total">88</div>
-                  <div class="score-math__cap">Unified<br/>Risk Score</div>
-                </div>
-              </div>
-              <p class="muted" style="font-size:11px;line-height:1.5;margin-bottom:var(--space-5);">
-                Neither system can produce this score alone. Epic holds the clinical history;
-                Salesforce holds the engagement history. This score exists only because both are read together.
-              </p>
-
-              <div class="section-label">Contributing factors</div>
-              <div style="margin-bottom:var(--space-5);">
-                <div class="prov-factor">
-                  <span class="prov-factor__arrow prov-factor__arrow--up">▲</span>
-                  <div class="prov-factor__body">
-                    <div class="prov-factor__text">2 prior ED readmissions in last 90 days</div>
-                    <div class="prov-factor__foot">
-                      <span class="src src--epic">Epic</span>
-                      <span class="prov-factor__weight">+24 pts</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="prov-factor">
-                  <span class="prov-factor__arrow prov-factor__arrow--up">▲</span>
-                  <div class="prov-factor__body">
-                    <div class="prov-factor__text">CHF primary diagnosis with prior exacerbation</div>
-                    <div class="prov-factor__foot">
-                      <span class="src src--epic">Epic</span>
-                      <span class="prov-factor__weight">+18 pts</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="prov-factor">
-                  <span class="prov-factor__arrow prov-factor__arrow--up">▲</span>
-                  <div class="prov-factor__body">
-                    <div class="prov-factor__text">Furosemide refill not picked up — 4 days overdue</div>
-                    <div class="prov-factor__foot">
-                      <span class="src src--epic">Epic</span>
-                      <span class="prov-factor__weight">+9 pts</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="prov-factor">
-                  <span class="prov-factor__arrow prov-factor__arrow--up">▲</span>
-                  <div class="prov-factor__body">
-                    <div class="prov-factor__text">No PCP follow-up appointment scheduled</div>
-                    <div class="prov-factor__foot">
-                      <span class="src src--sfdc">Salesforce</span>
-                      <span class="prov-factor__weight">+16 pts</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="prov-factor">
-                  <span class="prov-factor__arrow prov-factor__arrow--up">▲</span>
-                  <div class="prov-factor__body">
-                    <div class="prov-factor__text">Zero engagement touchpoints since discharge</div>
-                    <div class="prov-factor__foot">
-                      <span class="src src--sfdc">Salesforce</span>
-                      <span class="prov-factor__weight">+14 pts</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="prov-factor">
-                  <span class="prov-factor__arrow prov-factor__arrow--up">▲</span>
-                  <div class="prov-factor__body">
-                    <div class="prov-factor__text">Lives alone — no caregiver contact on file</div>
-                    <div class="prov-factor__foot">
-                      <span class="src src--sfdc">Salesforce</span>
-                      <span class="prov-factor__weight">+12 pts</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="prov-factor">
-                  <span class="prov-factor__arrow prov-factor__arrow--down">▼</span>
-                  <div class="prov-factor__body">
-                    <div class="prov-factor__text">Enrolled in MyChart and opted in to SMS</div>
-                    <div class="prov-factor__foot">
-                      <span class="src src--sfdc">Salesforce</span>
-                      <span class="prov-factor__weight">−5 pts</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="divider"></div>
-
-              <div class="section-label">Reconciled by this app</div>
-              <div class="conflict">
-                <div class="conflict__head">⚠️ Conflicting phone numbers</div>
-                <div class="conflict__versus">
-                  <div class="conflict__side">
-                    <span class="src src--epic">Epic</span>
-                    <div class="conflict__side-value">(773) 555-0142</div>
-                  </div>
-                  <div class="conflict__vs">VS</div>
-                  <div class="conflict__side">
-                    <span class="src src--sfdc">Salesforce</span>
-                    <div class="conflict__side-value">(312) 555-0198</div>
-                  </div>
-                </div>
-                <div class="conflict__resolution">
-                  <span>✓</span>
-                  <div>
-                    <strong>Using Salesforce number.</strong> Patient answered on this line 6 days ago
-                    during a Marketing Cloud SMS reply. Epic number last verified 14 months ago.
-                  </div>
-                </div>
-              </div>
-
-              <div class="conflict">
-                <div class="conflict__head">⚠️ Discharge status mismatch</div>
-                <div class="conflict__versus">
-                  <div class="conflict__side">
-                    <span class="src src--epic">Epic</span>
-                    <div class="conflict__side-value">Discharged Sep 14</div>
-                  </div>
-                  <div class="conflict__vs">VS</div>
-                  <div class="conflict__side">
-                    <span class="src src--sfdc">Salesforce</span>
-                    <div class="conflict__side-value">Case: Inpatient</div>
-                  </div>
-                </div>
-                <div class="conflict__resolution">
-                  <span>✓</span>
-                  <div>
-                    <strong>Trusting Epic.</strong> Epic is source of truth for clinical status.
-                    Salesforce case did not close — sync lag. Flagged for admin cleanup.
-                  </div>
-                </div>
-              </div>
-
-              <div class="divider"></div>
-
-              <div class="section-label">Next Best Actions</div>
-
-              <div class="nba-card">
-                <div class="nba-card__icon nba-card__icon--call">📞</div>
-                <div class="nba-card__body">
-                  <div class="nba-card__label nba-card__label--ai">Recommended · High Priority</div>
-                  <div class="nba-card__title">Outbound Post-Discharge Call</div>
-                  <div class="nba-card__desc">Patient has not been contacted since discharge 3 days ago. Medication pickup unconfirmed. Best call window: today before 5pm.</div>
-                  <div class="prov-factor__foot" style="margin-top:var(--space-2);">
-                    <span class="src src--agent">Agentforce</span>
-                    <span class="muted" style="font-size:10px;">reasoning from <span class="src src--epic">Epic</span> + <span class="src src--sfdc">Salesforce</span></span>
-                  </div>
-                  <div class="nba-card__actions">
-                    <button class="btn btn--primary btn--sm">Log Call</button>
-                    <button class="btn btn--ghost btn--sm">Dismiss</button>
-                  </div>
-                </div>
-              </div>
-
-              <div class="nba-card">
-                <div class="nba-card__icon nba-card__icon--visit">🏥</div>
-                <div class="nba-card__body">
-                  <div class="nba-card__label nba-card__label--ai">Recommended · Medium Priority</div>
-                  <div class="nba-card__title">Schedule PCP Follow-Up</div>
-                  <div class="nba-card__desc">No follow-up within 7 days of discharge. CHF patients without follow-up readmit at 2.4× the rate.</div>
-                  <div class="prov-factor__foot" style="margin-top:var(--space-2);">
-                    <span class="src src--agent">Agentforce</span>
-                    <span class="muted" style="font-size:10px;">writes to <span class="src src--epic">MyChart</span></span>
-                  </div>
-                  <div class="nba-card__actions">
-                    <button class="btn btn--secondary btn--sm">Open MyChart</button>
-                    <button class="btn btn--ghost btn--sm">Dismiss</button>
-                  </div>
-                </div>
-              </div>
-
-              <div class="nba-card">
-                <div class="nba-card__icon nba-card__icon--rx">💊</div>
-                <div class="nba-card__body">
-                  <div class="nba-card__label">Automated · One-Click Trigger</div>
-                  <div class="nba-card__title">Send Medication Reminder SMS</div>
-                  <div class="nba-card__desc">Furosemide 40mg refill is 4 days overdue. Patient is SMS opted-in.</div>
-                  <div class="prov-factor__foot" style="margin-top:var(--space-2);">
-                    <span class="muted" style="font-size:10px;">Rx data <span class="src src--epic">Epic</span> · consent <span class="src src--sfdc">Salesforce</span> · sends via <span class="src src--mc">Marketing Cloud</span></span>
-                  </div>
-                  <div class="nba-card__actions">
-                    <button class="btn btn--secondary btn--sm">Send Now</button>
-                    <button class="btn btn--ghost btn--sm">Dismiss</button>
-                  </div>
-                </div>
-              </div>
-
-              <div class="divider"></div>
-
-              <div class="section-label">Log an Outcome</div>
-              <div class="input-group">
-                <label class="input-label">Call Result</label>
-                <select class="select">
-                  <option>Select outcome…</option>
-                  <option>Reached — patient responsive</option>
-                  <option>Left voicemail</option>
-                  <option>No answer</option>
-                  <option>Patient refused</option>
-                  <option>Escalate to social work</option>
-                </select>
-              </div>
-              <div class="input-group">
-                <label class="input-label">Notes</label>
-                <textarea class="input" placeholder="e.g. Confirmed transportation barrier — no ride to pharmacy. Referred to patient transport services."></textarea>
-              </div>
-              <button class="btn btn--primary btn--block">Save Outcome</button>
-              <div class="muted" style="text-align:center;margin-top:var(--space-3);font-size:11px;line-height:1.6;">
-                Writes once to <span class="src src--sfdc">Health Cloud</span><br />
-                No duplicate entry in Epic required
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Recent activity preview -->
-        <div class="panel">
-          <div class="panel__head">
-            <div class="panel__title">Recent Activity</div>
-          </div>
-          <div class="panel__body">
-            <div class="timeline">
-              <div class="timeline-item">
-                <div class="timeline-dot timeline-dot--red">🏥</div>
-                <div class="timeline-body">
-                  <div class="timeline-body__title">ED Admission</div>
-                  <div class="timeline-body__desc">Admitted via Emergency — CHF exacerbation, shortness of breath.</div>
-                  <div class="timeline-body__time">Sep 14, 2026 · 11:42 PM &nbsp;<span class="src src--epic">Epic</span></div>
-                </div>
-              </div>
-              <div class="timeline-item">
-                <div class="timeline-dot">📋</div>
-                <div class="timeline-body">
-                  <div class="timeline-body__title">Discharged — Clinical Record Closed</div>
-                  <div class="timeline-body__desc">Discharge orders signed. Furosemide 40mg prescribed.</div>
-                  <div class="timeline-body__time">Sep 14, 2026 · 9:15 AM &nbsp;<span class="src src--epic">Epic</span></div>
-                </div>
-              </div>
-              <div class="timeline-item">
-                <div class="timeline-dot">⚡</div>
-                <div class="timeline-body">
-                  <div class="timeline-body__title">Risk Scored — Flagged High</div>
-                  <div class="timeline-body__desc">Epic clinical data joined with Salesforce engagement history. Score 88/100.</div>
-                  <div class="timeline-body__time">Sep 14, 2026 · 9:31 AM &nbsp;<span class="src src--sfdc">Data Cloud</span></div>
-                </div>
-              </div>
-              <div class="timeline-item">
-                <div class="timeline-dot">🤖</div>
-                <div class="timeline-body">
-                  <div class="timeline-body__title">3 Next Best Actions Generated</div>
-                  <div class="timeline-body__desc">Call, schedule follow-up, medication reminder. Routed to coordinator queue.</div>
-                  <div class="timeline-body__time">Sep 14, 2026 · 9:32 AM &nbsp;<span class="src src--agent">Agentforce</span></div>
-                </div>
-              </div>
-              <div class="timeline-item">
-                <div class="timeline-dot timeline-dot--maroon">👤</div>
-                <div class="timeline-body">
-                  <div class="timeline-body__title">Assigned to Sarah Lin</div>
-                  <div class="timeline-body__desc">Auto-assigned by caseload balancing rule.</div>
-                  <div class="timeline-body__time">Sep 15, 2026 · 8:00 AM &nbsp;<span class="src src--sfdc">Health Cloud</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div class="panel" id="detailPanel"></div>
+        <div class="panel" id="activityPanel"></div>
       </div>
 
     </div>
@@ -650,16 +267,16 @@
 
   var ME = 'sarah';
 
-  var bell       = document.getElementById('bell');
-  var bellCount  = document.getElementById('bellCount');
-  var inbox      = document.getElementById('inbox');
-  var inboxList  = document.getElementById('inboxList');
-  var delegHost  = document.getElementById('delegHost');
-  var queueBody  = document.getElementById('queueBody');
-  var sideBadge  = document.querySelector('.side-nav__item.active .side-nav__badge');
+  var bell          = document.getElementById('bell');
+  var bellCount     = document.getElementById('bellCount');
+  var inbox         = document.getElementById('inbox');
+  var inboxList     = document.getElementById('inboxList');
+  var delegHost     = document.getElementById('delegHost');
+  var queueBody     = document.getElementById('queueBody');
+  var detailPanel   = document.getElementById('detailPanel');
+  var activityPanel = document.getElementById('activityPanel');
+  var sideBadge     = document.querySelector('.side-nav__item.active .side-nav__badge');
 
-  // Patients already rendered statically — the baseline caseload.
-  var BASE_COUNT = queueBody.querySelectorAll('tr').length;
   var seen = {};
 
   function esc(s) {
@@ -667,6 +284,737 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
     });
   }
+
+  /* ─── Source system tags ────────────────────────── */
+  var SRC = {
+    epic:  { cls: 'epic',  label: 'Epic' },
+    sfdc:  { cls: 'sfdc',  label: 'Salesforce' },
+    dc:    { cls: 'sfdc',  label: 'Data Cloud' },
+    hc:    { cls: 'sfdc',  label: 'Health Cloud' },
+    agent: { cls: 'agent', label: 'Agentforce' },
+    mc:    { cls: 'mc',    label: 'Marketing Cloud' }
+  };
+  function srcTag(key) {
+    var s = SRC[key] || SRC.epic;
+    return '<span class="src src--' + s.cls + '">' + s.label + '</span>';
+  }
+
+  /* Provenance footers for action cards. Authored markup, not user data. */
+  var PROV = {
+    reason: srcTag('agent') + '<span class="muted" style="font-size:10px;">reasoning from ' +
+            srcTag('epic') + ' + ' + srcTag('sfdc') + '</span>',
+    mychart: srcTag('agent') + '<span class="muted" style="font-size:10px;">writes to ' +
+            '<span class="src src--epic">MyChart</span></span>',
+    healthCloud: srcTag('agent') + '<span class="muted" style="font-size:10px;">writes to ' +
+            srcTag('hc') + '</span>',
+    rxSms: '<span class="muted" style="font-size:10px;">Rx data ' + srcTag('epic') +
+            ' · consent ' + srcTag('sfdc') + ' · sends via ' + srcTag('mc') + '</span>',
+    sms: '<span class="muted" style="font-size:10px;">consent ' + srcTag('sfdc') +
+            ' · sends via ' + srcTag('mc') + '</span>'
+  };
+
+  var TIER = { high: 'High', medium: 'Medium', low: 'Low' };
+
+  /* ─── Baseline caseload ──────────────────────────────────
+     Sarah's standing patients. Session-assigned patients arrive
+     separately from UCM state and are adapted by fromPool().
+     Factor points are authored to sum to epicPts / sfdcPts. */
+  var BASE = [
+    {
+      id: 'washington', name: 'Darnell Washington', mrn: '4820193', age: 67, sex: 'M',
+      dx: 'CHF Exacerbation', score: 88, tier: 'high', epicPts: 51, sfdcPts: 37,
+      dischargedOn: 'Sep 14', dischargedAgo: '3 days ago', assignedOn: 'Sep 15',
+      lastContact: null, nextAction: '📞 Call today',
+      admit: { desc: 'Admitted via Emergency — CHF exacerbation, shortness of breath.',
+               time: 'Sep 11, 2026 · 11:42 PM' },
+      discharge: { desc: 'Discharge orders signed. Furosemide 40mg prescribed.',
+                   time: 'Sep 14, 2026 · 9:15 AM' },
+      factors: [
+        { text: '2 prior ED readmissions in last 90 days', src: 'epic', pts: 24 },
+        { text: 'CHF primary diagnosis with prior exacerbation', src: 'epic', pts: 18 },
+        { text: 'Furosemide refill not picked up — 4 days overdue', src: 'epic', pts: 9 },
+        { text: 'No PCP follow-up appointment scheduled', src: 'sfdc', pts: 16 },
+        { text: 'Zero engagement touchpoints since discharge', src: 'sfdc', pts: 14 },
+        { text: 'Lives alone — no caregiver contact on file', src: 'sfdc', pts: 12 },
+        { text: 'Enrolled in MyChart and opted in to SMS', src: 'sfdc', pts: -5 }
+      ],
+      conflicts: [
+        { head: 'Conflicting phone numbers',
+          a: { src: 'epic', value: '(773) 555-0142' },
+          b: { src: 'sfdc', value: '(312) 555-0198' },
+          verdict: 'Using Salesforce number.',
+          why: 'Patient answered on this line 6 days ago during a Marketing Cloud SMS reply. ' +
+               'Epic number last verified 14 months ago.' },
+        { head: 'Discharge status mismatch',
+          a: { src: 'epic', value: 'Discharged Sep 14' },
+          b: { src: 'sfdc', value: 'Case: Inpatient' },
+          verdict: 'Trusting Epic.',
+          why: 'Epic is source of truth for clinical status. Salesforce case did not close — ' +
+               'sync lag. Flagged for admin cleanup.' }
+      ],
+      actions: [
+        { icon: '📞', tone: 'call', ai: true, label: 'Recommended · High Priority',
+          title: 'Outbound Post-Discharge Call',
+          desc: 'Patient has not been contacted since discharge 3 days ago. Medication pickup ' +
+                'unconfirmed. Best call window: today before 5pm.',
+          prov: PROV.reason,
+          buttons: [{ text: 'Log Call', kind: 'primary' }, { text: 'Dismiss', kind: 'ghost' }] },
+        { icon: '🏥', tone: 'visit', ai: true, label: 'Recommended · Medium Priority',
+          title: 'Schedule PCP Follow-Up',
+          desc: 'No follow-up within 7 days of discharge. CHF patients without follow-up ' +
+                'readmit at 2.4× the rate.',
+          prov: PROV.mychart,
+          buttons: [{ text: 'Open MyChart', kind: 'secondary' }, { text: 'Dismiss', kind: 'ghost' }] },
+        { icon: '💊', tone: 'rx', ai: false, label: 'Automated · One-Click Trigger',
+          title: 'Send Medication Reminder SMS',
+          desc: 'Furosemide 40mg refill is 4 days overdue. Patient is SMS opted-in.',
+          prov: PROV.rxSms,
+          buttons: [{ text: 'Send Now', kind: 'secondary' }, { text: 'Dismiss', kind: 'ghost' }] }
+      ]
+    },
+    {
+      id: 'osei', name: 'Robert Osei', mrn: '7730021', age: 72, sex: 'M',
+      dx: 'Sepsis Recovery', score: 84, tier: 'high', epicPts: 55, sfdcPts: 29,
+      dischargedOn: 'Sep 16', dischargedAgo: '1 day ago', assignedOn: 'Sep 16',
+      lastContact: null, nextAction: '📞 Call today',
+      admit: { desc: 'Admitted via Emergency — severe sepsis, urinary source. ICU 3 days.',
+               time: 'Sep 12, 2026 · 4:18 AM' },
+      discharge: { desc: 'IV antibiotics completed. Oral step-down course prescribed, 7 days.',
+                   time: 'Sep 16, 2026 · 11:20 AM' },
+      factors: [
+        { text: 'Severe sepsis with 3-day ICU stay this admission', src: 'epic', pts: 22 },
+        { text: 'Age 72 with stage 3 chronic kidney disease', src: 'epic', pts: 20 },
+        { text: 'Oral antibiotic step-down not yet verified', src: 'epic', pts: 13 },
+        { text: 'No post-discharge contact attempted', src: 'sfdc', pts: 15 },
+        { text: 'No caregiver or emergency contact on file', src: 'sfdc', pts: 11 },
+        { text: '2 missed appointments in prior 12 months', src: 'sfdc', pts: 8 },
+        { text: 'Mobile number verified, SMS opted in', src: 'sfdc', pts: -5 }
+      ],
+      conflicts: [
+        { head: 'Active medication list mismatch',
+          a: { src: 'epic', value: '7 active medications' },
+          b: { src: 'sfdc', value: '4 active medications' },
+          verdict: 'Trusting Epic.',
+          why: 'Three antibiotics were added at discharge yesterday and have not yet ' +
+               'propagated to the Salesforce care plan. Reconcile on first call.' }
+      ],
+      actions: [
+        { icon: '📞', tone: 'call', ai: true, label: 'Recommended · High Priority',
+          title: 'Outbound Post-Discharge Call',
+          desc: 'Discharged 1 day ago after ICU-level sepsis care. Highest-yield window for ' +
+                'catching early deterioration is the first 48 hours.',
+          prov: PROV.reason,
+          buttons: [{ text: 'Log Call', kind: 'primary' }, { text: 'Dismiss', kind: 'ghost' }] },
+        { icon: '💊', tone: 'rx', ai: true, label: 'Recommended · High Priority',
+          title: 'Verify Oral Antibiotic Step-Down',
+          desc: 'Step-down course must start within 24 hours of the last IV dose. Pharmacy ' +
+                'pickup is unconfirmed.',
+          prov: PROV.reason,
+          buttons: [{ text: 'Check Pharmacy', kind: 'secondary' }, { text: 'Dismiss', kind: 'ghost' }] },
+        { icon: '⚠️', tone: 'alert', ai: false, label: 'Data Gap · Blocks Escalation',
+          title: 'Capture Emergency Contact',
+          desc: 'No caregiver on file. Required before after-hours escalation can be routed.',
+          prov: PROV.healthCloud,
+          buttons: [{ text: 'Add Contact', kind: 'secondary' }, { text: 'Dismiss', kind: 'ghost' }] }
+      ]
+    },
+    {
+      id: 'mensah', name: 'Gloria Mensah', mrn: '2214870', age: 79, sex: 'F',
+      dx: 'COPD Exacerbation', score: 81, tier: 'high', epicPts: 49, sfdcPts: 32,
+      dischargedOn: 'Sep 15', dischargedAgo: '2 days ago', assignedOn: 'Sep 15',
+      lastContact: 'Voicemail · 1d ago', nextAction: '📞 Retry call',
+      admit: { desc: 'Admitted via Emergency — COPD exacerbation, hypoxia on room air.',
+               time: 'Sep 12, 2026 · 7:33 PM' },
+      discharge: { desc: 'Prednisone taper and rescue inhaler prescribed. Home oxygen continued.',
+                   time: 'Sep 15, 2026 · 10:05 AM' },
+      factors: [
+        { text: '3rd COPD exacerbation in the last 12 months', src: 'epic', pts: 21 },
+        { text: 'Age 79, dependent on continuous home oxygen', src: 'epic', pts: 17 },
+        { text: 'Inhaler technique not documented at discharge', src: 'epic', pts: 11 },
+        { text: 'Voicemail only — no live contact since discharge', src: 'sfdc', pts: 14 },
+        { text: 'No pulmonary rehab referral scheduled', src: 'sfdc', pts: 12 },
+        { text: 'Transportation barrier flagged in prior case', src: 'sfdc', pts: 9 },
+        { text: 'Daughter listed as active caregiver contact', src: 'sfdc', pts: -3 }
+      ],
+      conflicts: [
+        { head: 'Caregiver contact disagreement',
+          a: { src: 'epic', value: 'No caregiver listed' },
+          b: { src: 'sfdc', value: 'Daughter — (773) 555-0281' },
+          verdict: 'Using Salesforce contact.',
+          why: 'Daughter was added during a care management call in July and has since ' +
+               'answered twice. Epic demographic record predates that.' }
+      ],
+      actions: [
+        { icon: '📞', tone: 'call', ai: true, label: 'Recommended · High Priority',
+          title: 'Retry Call — Try Caregiver Line',
+          desc: 'Voicemail left yesterday with no callback. Daughter has answered on the ' +
+                'secondary line twice before.',
+          prov: PROV.reason,
+          buttons: [{ text: 'Log Call', kind: 'primary' }, { text: 'Dismiss', kind: 'ghost' }] },
+        { icon: '🏥', tone: 'visit', ai: true, label: 'Recommended · High Priority',
+          title: 'Schedule Pulmonary Rehab Intake',
+          desc: 'Third exacerbation this year with no rehab referral on file. Rehab within ' +
+                '30 days cuts repeat exacerbation risk substantially.',
+          prov: PROV.mychart,
+          buttons: [{ text: 'Open MyChart', kind: 'secondary' }, { text: 'Dismiss', kind: 'ghost' }] },
+        { icon: '⚠️', tone: 'alert', ai: true, label: 'Recommended · Medium Priority',
+          title: 'Arrange Transport for Follow-Up',
+          desc: 'Transportation barrier documented in a prior case. Follow-up attendance ' +
+                'is the main risk to this plan.',
+          prov: PROV.healthCloud,
+          buttons: [{ text: 'Request Transport', kind: 'secondary' }, { text: 'Dismiss', kind: 'ghost' }] }
+      ],
+      events: [
+        { icon: '📞', dot: '', title: 'Outbound Call — Voicemail Left',
+          desc: 'No answer on verified mobile. Voicemail left with direct callback number.',
+          time: 'Sep 16, 2026 · 2:10 PM', src: 'sfdc' }
+      ]
+    },
+    {
+      id: 'bell', name: 'Curtis Bell', mrn: '9081234', age: 58, sex: 'M',
+      dx: 'Diabetic Ketoacidosis', score: 77, tier: 'high', epicPts: 47, sfdcPts: 30,
+      dischargedOn: 'Sep 13', dischargedAgo: '4 days ago', assignedOn: 'Sep 13',
+      lastContact: 'Reached · 2d ago', nextAction: '💊 Confirm Rx pickup',
+      admit: { desc: 'Admitted via Emergency — diabetic ketoacidosis, blood glucose 512.',
+               time: 'Sep 10, 2026 · 2:55 AM' },
+      discharge: { desc: 'Insulin regimen revised to basal-bolus. Glucometer supplies issued.',
+                   time: 'Sep 13, 2026 · 2:40 PM' },
+      factors: [
+        { text: '2nd DKA admission in the last 6 months', src: 'epic', pts: 20 },
+        { text: 'HbA1c 11.2% on admission', src: 'epic', pts: 16 },
+        { text: 'Insulin regimen changed at discharge', src: 'epic', pts: 11 },
+        { text: 'Reported insulin cost concern on last call', src: 'sfdc', pts: 12 },
+        { text: 'Insulin prescription not picked up — 3 days', src: 'sfdc', pts: 13 },
+        { text: 'No endocrinology follow-up booked', src: 'sfdc', pts: 10 },
+        { text: 'Reached by phone 2 days ago — engaged', src: 'sfdc', pts: -5 }
+      ],
+      conflicts: [
+        { head: 'Preferred pharmacy disagreement',
+          a: { src: 'epic', value: 'Walgreens — 55th St' },
+          b: { src: 'sfdc', value: 'Mariano\'s — Hyde Park' },
+          verdict: 'Using Salesforce pharmacy.',
+          why: 'Patient stated the new pharmacy during the call 2 days ago. The Epic ' +
+               'prescription was routed to the old location — likely why pickup has not happened.' }
+      ],
+      actions: [
+        { icon: '💊', tone: 'rx', ai: true, label: 'Recommended · High Priority',
+          title: 'Reroute and Confirm Insulin Pickup',
+          desc: 'Prescription sits at the wrong pharmacy and is 3 days unclaimed. Missed ' +
+                'insulin is the direct path back to DKA.',
+          prov: PROV.reason,
+          buttons: [{ text: 'Reroute Rx', kind: 'primary' }, { text: 'Dismiss', kind: 'ghost' }] },
+        { icon: '⚠️', tone: 'alert', ai: true, label: 'Recommended · High Priority',
+          title: 'Refer to Financial Assistance',
+          desc: 'Patient raised insulin affordability on the last call. Cost is the stated ' +
+                'barrier, so a reminder alone will not resolve it.',
+          prov: PROV.healthCloud,
+          buttons: [{ text: 'Start Referral', kind: 'secondary' }, { text: 'Dismiss', kind: 'ghost' }] },
+        { icon: '🏥', tone: 'visit', ai: true, label: 'Recommended · Medium Priority',
+          title: 'Book Endocrinology Follow-Up',
+          desc: 'Regimen changed at discharge with no specialist follow-up scheduled.',
+          prov: PROV.mychart,
+          buttons: [{ text: 'Open MyChart', kind: 'secondary' }, { text: 'Dismiss', kind: 'ghost' }] }
+      ],
+      events: [
+        { icon: '📞', dot: 'green', title: 'Outbound Call — Patient Reached',
+          desc: 'Confirmed glucometer use. Raised concern about insulin cost. Pharmacy ' +
+                'preference updated.',
+          time: 'Sep 15, 2026 · 10:25 AM', src: 'sfdc' }
+      ]
+    },
+    {
+      id: 'okonkwo', name: 'Maria Okonkwo', mrn: '3310485', age: 54, sex: 'F',
+      dx: 'COPD', score: 62, tier: 'medium', epicPts: 36, sfdcPts: 26,
+      dischargedOn: 'Sep 10', dischargedAgo: '7 days ago', assignedOn: 'Sep 10',
+      lastContact: 'Reached · 4d ago', nextAction: '📅 Schedule follow-up',
+      admit: { desc: 'Admitted for COPD exacerbation — increased wheeze, productive cough.',
+               time: 'Sep 8, 2026 · 1:12 PM' },
+      discharge: { desc: 'Bronchodilator regimen adjusted. Smoking cessation counselling offered.',
+                   time: 'Sep 10, 2026 · 9:50 AM' },
+      factors: [
+        { text: 'COPD with 1 prior exacerbation this year', src: 'epic', pts: 18 },
+        { text: 'Active smoker, documented at discharge', src: 'epic', pts: 12 },
+        { text: 'Spirometry overdue by 8 months', src: 'epic', pts: 6 },
+        { text: 'No PCP follow-up inside the 7-day window', src: 'sfdc', pts: 14 },
+        { text: 'Declined pulmonary rehab referral', src: 'sfdc', pts: 10 },
+        { text: 'Single engagement touchpoint since discharge', src: 'sfdc', pts: 7 },
+        { text: 'Reached and responsive 4 days ago', src: 'sfdc', pts: -5 }
+      ],
+      conflicts: [
+        { head: 'SMS consent disagreement',
+          a: { src: 'epic', value: 'No messaging consent' },
+          b: { src: 'sfdc', value: 'SMS opted in — Aug 2026' },
+          verdict: 'Using Salesforce consent.',
+          why: 'Opt-in was captured through a Marketing Cloud campaign and is the more ' +
+               'recent record. Outbound SMS is permitted.' }
+      ],
+      actions: [
+        { icon: '📅', tone: 'visit', ai: true, label: 'Recommended · Medium Priority',
+          title: 'Schedule PCP Follow-Up',
+          desc: 'The 7-day post-discharge window closes today with no appointment booked.',
+          prov: PROV.mychart,
+          buttons: [{ text: 'Open MyChart', kind: 'secondary' }, { text: 'Dismiss', kind: 'ghost' }] },
+        { icon: '💬', tone: 'call', ai: false, label: 'Automated · One-Click Trigger',
+          title: 'Send Smoking Cessation Resources',
+          desc: 'Active smoker who declined rehab. SMS consent is confirmed in Salesforce.',
+          prov: PROV.sms,
+          buttons: [{ text: 'Send Now', kind: 'secondary' }, { text: 'Dismiss', kind: 'ghost' }] }
+      ],
+      events: [
+        { icon: '📞', dot: 'green', title: 'Outbound Call — Patient Reached',
+          desc: 'Reported stable breathing. Declined pulmonary rehab referral.',
+          time: 'Sep 13, 2026 · 3:40 PM', src: 'sfdc' }
+      ]
+    },
+    {
+      id: 'nguyen', name: 'Thomas Nguyen', mrn: '6612098', age: 61, sex: 'M',
+      dx: 'Post-Op Cardiac', score: 58, tier: 'medium', epicPts: 33, sfdcPts: 25,
+      dischargedOn: 'Sep 12', dischargedAgo: '5 days ago', assignedOn: 'Sep 12',
+      lastContact: 'Reached · 3d ago', nextAction: '💬 Send SMS check-in',
+      admit: { desc: 'Elective admission for coronary artery bypass graft, three vessels.',
+               time: 'Sep 7, 2026 · 6:00 AM' },
+      discharge: { desc: 'Post-op day 5. Warfarin started — INR monitoring required weekly.',
+                   time: 'Sep 12, 2026 · 12:30 PM' },
+      factors: [
+        { text: 'CABG — postoperative day 5 at discharge', src: 'epic', pts: 15 },
+        { text: 'Anticoagulation requires weekly INR monitoring', src: 'epic', pts: 12 },
+        { text: 'Mild post-operative anemia at discharge', src: 'epic', pts: 6 },
+        { text: 'INR draw appointment not confirmed', src: 'sfdc', pts: 12 },
+        { text: 'Cardiac rehab intake not scheduled', src: 'sfdc', pts: 9 },
+        { text: 'Spouse travelling — limited home support this week', src: 'sfdc', pts: 8 },
+        { text: 'Reached 3 days ago, reported feeling well', src: 'sfdc', pts: -4 }
+      ],
+      conflicts: [],
+      actions: [
+        { icon: '⚠️', tone: 'alert', ai: true, label: 'Recommended · High Priority',
+          title: 'Confirm INR Draw Appointment',
+          desc: 'Warfarin started at discharge with no confirmed lab visit. An unmonitored ' +
+                'INR is the highest-consequence gap in this plan.',
+          prov: PROV.reason,
+          buttons: [{ text: 'Confirm Lab', kind: 'primary' }, { text: 'Dismiss', kind: 'ghost' }] },
+        { icon: '🏥', tone: 'visit', ai: true, label: 'Recommended · Medium Priority',
+          title: 'Schedule Cardiac Rehab Intake',
+          desc: 'Post-CABG rehab enrolment is still open and improves 90-day outcomes.',
+          prov: PROV.mychart,
+          buttons: [{ text: 'Open MyChart', kind: 'secondary' }, { text: 'Dismiss', kind: 'ghost' }] },
+        { icon: '💬', tone: 'call', ai: false, label: 'Automated · One-Click Trigger',
+          title: 'Send SMS Check-In',
+          desc: 'Spouse away this week. A light-touch check-in covers the gap in home support.',
+          prov: PROV.sms,
+          buttons: [{ text: 'Send Now', kind: 'secondary' }, { text: 'Dismiss', kind: 'ghost' }] }
+      ],
+      events: [
+        { icon: '📞', dot: 'green', title: 'Outbound Call — Patient Reached',
+          desc: 'Incision healing well, no chest pain. Spouse travel noted as a support gap.',
+          time: 'Sep 14, 2026 · 11:05 AM', src: 'sfdc' }
+      ]
+    },
+    {
+      id: 'pierce', name: 'Yolanda Pierce', mrn: '4471102', age: 48, sex: 'F',
+      dx: 'Cellulitis', score: 51, tier: 'medium', epicPts: 28, sfdcPts: 23,
+      dischargedOn: 'Sep 11', dischargedAgo: '6 days ago', assignedOn: 'Sep 11',
+      lastContact: 'Reached · 5d ago', nextAction: '📅 Schedule follow-up',
+      admit: { desc: 'Admitted for lower-leg cellulitis requiring intravenous antibiotics.',
+               time: 'Sep 9, 2026 · 5:47 PM' },
+      discharge: { desc: 'Transitioned to oral antibiotics, 10-day course. Wound care instructions given.',
+                   time: 'Sep 11, 2026 · 1:15 PM' },
+      factors: [
+        { text: 'Cellulitis with IV-to-oral antibiotic transition', src: 'epic', pts: 13 },
+        { text: 'Type 2 diabetes — impaired wound healing', src: 'epic', pts: 10 },
+        { text: 'Wound check not yet documented', src: 'epic', pts: 5 },
+        { text: 'Wound care follow-up not scheduled', src: 'sfdc', pts: 11 },
+        { text: 'Works two jobs — daytime contact difficult', src: 'sfdc', pts: 9 },
+        { text: 'No email on file, SMS only', src: 'sfdc', pts: 6 },
+        { text: 'Reached 5 days ago, antibiotics confirmed', src: 'sfdc', pts: -3 }
+      ],
+      conflicts: [
+        { head: 'Conflicting phone numbers',
+          a: { src: 'epic', value: '(312) 555-0733' },
+          b: { src: 'sfdc', value: '(872) 555-0119' },
+          verdict: 'Using Salesforce number.',
+          why: 'Epic number reaches a disconnected line. The Salesforce mobile answered ' +
+               '5 days ago and is the only working contact.' }
+      ],
+      actions: [
+        { icon: '🏥', tone: 'visit', ai: true, label: 'Recommended · Medium Priority',
+          title: 'Schedule Wound Care Follow-Up',
+          desc: 'Diabetic patient mid-antibiotic course with no wound check booked. Healing ' +
+                'needs to be verified before the course ends.',
+          prov: PROV.mychart,
+          buttons: [{ text: 'Open MyChart', kind: 'secondary' }, { text: 'Dismiss', kind: 'ghost' }] },
+        { icon: '💬', tone: 'call', ai: true, label: 'Recommended · Low Priority',
+          title: 'Send Evening SMS Check-In',
+          desc: 'Works two jobs — daytime calls have not connected. Evening SMS matches ' +
+                'the contact pattern that has worked.',
+          prov: PROV.sms,
+          buttons: [{ text: 'Schedule SMS', kind: 'secondary' }, { text: 'Dismiss', kind: 'ghost' }] }
+      ],
+      events: [
+        { icon: '📞', dot: 'green', title: 'Outbound Call — Patient Reached',
+          desc: 'Confirmed antibiotic adherence. Requested evening contact going forward.',
+          time: 'Sep 12, 2026 · 6:20 PM', src: 'sfdc' }
+      ]
+    },
+    {
+      id: 'torres', name: 'Angela Torres', mrn: '5540882', age: 44, sex: 'F',
+      dx: 'Appendectomy', score: 22, tier: 'low', epicPts: 12, sfdcPts: 10,
+      dischargedOn: 'Sep 12', dischargedAgo: '5 days ago', assignedOn: 'Sep 12',
+      lastContact: 'Reached · 4d ago', nextAction: '✓ Monitor only',
+      admit: { desc: 'Admitted via Emergency — acute appendicitis, no perforation.',
+               time: 'Sep 11, 2026 · 8:05 AM' },
+      discharge: { desc: 'Laparoscopic appendectomy, uncomplicated. Routine analgesia prescribed.',
+                   time: 'Sep 12, 2026 · 10:40 AM' },
+      factors: [
+        { text: 'Laparoscopic appendectomy — uncomplicated', src: 'epic', pts: 8 },
+        { text: 'Post-op day 5, no complications documented', src: 'epic', pts: 6 },
+        { text: 'No chronic conditions on file', src: 'epic', pts: -2 },
+        { text: 'Post-op wound check not yet confirmed', src: 'sfdc', pts: 7 },
+        { text: 'First admission — no engagement history', src: 'sfdc', pts: 6 },
+        { text: 'Reached 4 days ago, recovering well', src: 'sfdc', pts: -3 }
+      ],
+      conflicts: [],
+      actions: [
+        { icon: '💬', tone: 'call', ai: false, label: 'Automated · One-Click Trigger',
+          title: 'Send Post-Op Check-In SMS',
+          desc: 'Routine day-7 recovery check. No clinical concerns outstanding.',
+          prov: PROV.sms,
+          buttons: [{ text: 'Send Now', kind: 'secondary' }, { text: 'Dismiss', kind: 'ghost' }] }
+      ],
+      events: [
+        { icon: '📞', dot: 'green', title: 'Outbound Call — Patient Reached',
+          desc: 'Recovering well, pain controlled. No further concerns raised.',
+          time: 'Sep 13, 2026 · 9:30 AM', src: 'sfdc' }
+      ]
+    },
+    {
+      id: 'adeyemi', name: 'Michael Adeyemi', mrn: '1129334', age: 39, sex: 'M',
+      dx: 'Laceration Repair', score: 17, tier: 'low', epicPts: 9, sfdcPts: 8,
+      dischargedOn: 'Sep 9', dischargedAgo: '8 days ago', assignedOn: 'Sep 9',
+      lastContact: 'Reached · 7d ago', nextAction: '✓ Monitor only',
+      admit: { desc: 'Presented to Emergency — forearm laceration from a workplace injury.',
+               time: 'Sep 9, 2026 · 3:22 PM' },
+      discharge: { desc: 'Nine sutures placed. Tetanus booster given. Removal due in 10 days.',
+                   time: 'Sep 9, 2026 · 6:50 PM' },
+      factors: [
+        { text: 'Laceration repair, 9 sutures — removal due', src: 'epic', pts: 7 },
+        { text: 'Tetanus booster administered', src: 'epic', pts: 4 },
+        { text: 'No chronic conditions on file', src: 'epic', pts: -2 },
+        { text: 'Suture removal appointment not booked', src: 'sfdc', pts: 6 },
+        { text: 'No established primary care provider', src: 'sfdc', pts: 5 },
+        { text: 'Reached 7 days ago, healing well', src: 'sfdc', pts: -3 }
+      ],
+      conflicts: [],
+      actions: [
+        { icon: '📅', tone: 'visit', ai: true, label: 'Recommended · Low Priority',
+          title: 'Book Suture Removal',
+          desc: 'Removal is due within 2 days and no appointment exists. Patient has no PCP ' +
+                'to fall back on.',
+          prov: PROV.mychart,
+          buttons: [{ text: 'Open MyChart', kind: 'secondary' }, { text: 'Dismiss', kind: 'ghost' }] }
+      ],
+      events: [
+        { icon: '📞', dot: 'green', title: 'Outbound Call — Patient Reached',
+          desc: 'Wound clean and healing. Advised on suture removal timing.',
+          time: 'Sep 10, 2026 · 4:15 PM', src: 'sfdc' }
+      ]
+    }
+  ];
+
+  /* Outcomes logged this session for baseline patients, who live here
+     rather than in shared session state. Keeps the queue coherent
+     after the coordinator saves a call. */
+  var localContact = {};
+
+  function contactText(p) { return localContact[p.id] || p.lastContact || null; }
+
+  /* ─── Session-assigned patients ──────────────────────────
+     UCM pool records carry scores but no authored detail, so
+     derive a comparable view from the points they do have. */
+  function fromPool(p) {
+    var days = Math.max(1, Math.floor(p.hoursSince / 24));
+    var epicA = Math.round(p.epicPts * 0.55);
+    var sfdcA = Math.round(p.sfdcPts * 0.55);
+    return {
+      id: p.id, name: p.name, mrn: p.mrn, age: p.age, sex: p.sex,
+      dx: p.dx, score: p.score, tier: p.tier || 'high',
+      epicPts: p.epicPts, sfdcPts: p.sfdcPts,
+      dischargedOn: 'Sep ' + (17 - days), dischargedAgo: days + ' days ago',
+      assignedOn: 'Sep 17',
+      lastContact: p.contacted ? (p.lastOutcome || 'Contacted') : null,
+      nextAction: '📞 Call today',
+      admit: { desc: 'Admitted via Emergency — ' + p.dx + '.',
+               time: 'Sep ' + Math.max(1, 17 - days - 2) + ', 2026 · 8:00 AM' },
+      discharge: { desc: 'Discharge orders signed. Post-discharge plan routed to care coordination.',
+                   time: 'Sep ' + (17 - days) + ', 2026 · 10:00 AM' },
+      factors: [
+        { text: p.dx + ' as primary discharge diagnosis', src: 'epic', pts: epicA },
+        { text: 'Prior admission history and comorbidity burden', src: 'epic', pts: p.epicPts - epicA },
+        { text: 'Never contacted since discharge ' + p.hoursSince + ' hours ago', src: 'sfdc', pts: sfdcA },
+        { text: 'No follow-up appointment scheduled', src: 'sfdc', pts: p.sfdcPts - sfdcA }
+      ],
+      conflicts: [],
+      actions: [
+        { icon: '📞', tone: 'call', ai: true, label: 'Recommended · High Priority',
+          title: 'Outbound Post-Discharge Call',
+          desc: 'Assigned by James Porter. Risk score ' + p.score + ', discharged ' +
+                p.hoursSince + ' hours ago and never contacted.',
+          prov: PROV.reason,
+          buttons: [{ text: 'Log Call', kind: 'primary' }, { text: 'Dismiss', kind: 'ghost' }] },
+        { icon: '🏥', tone: 'visit', ai: true, label: 'Recommended · Medium Priority',
+          title: 'Schedule PCP Follow-Up',
+          desc: 'No follow-up on file within the post-discharge window.',
+          prov: PROV.mychart,
+          buttons: [{ text: 'Open MyChart', kind: 'secondary' }, { text: 'Dismiss', kind: 'ghost' }] }
+      ],
+      assignNote: 'Manually assigned by James Porter from the unassigned pool.'
+    };
+  }
+
+  function patientById(id) {
+    for (var i = 0; i < BASE.length; i++) {
+      if (BASE[i].id === id) return BASE[i];
+    }
+    var pool = UCM.assignedTo(ME).filter(function (p) { return p.id === id; })[0];
+    return pool ? fromPool(pool) : null;
+  }
+
+  /* ─── Detail panel ──────────────────────────────── */
+  function factorRow(f) {
+    var up = f.pts >= 0;
+    return '' +
+    '<div class="prov-factor">' +
+      '<span class="prov-factor__arrow prov-factor__arrow--' + (up ? 'up' : 'down') + '">' +
+        (up ? '▲' : '▼') + '</span>' +
+      '<div class="prov-factor__body">' +
+        '<div class="prov-factor__text">' + esc(f.text) + '</div>' +
+        '<div class="prov-factor__foot">' + srcTag(f.src) +
+          '<span class="prov-factor__weight">' + (up ? '+' : '−') +
+            Math.abs(f.pts) + ' pts</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function conflictBlock(c) {
+    return '' +
+    '<div class="conflict">' +
+      '<div class="conflict__head">⚠️ ' + esc(c.head) + '</div>' +
+      '<div class="conflict__versus">' +
+        '<div class="conflict__side">' + srcTag(c.a.src) +
+          '<div class="conflict__side-value">' + esc(c.a.value) + '</div></div>' +
+        '<div class="conflict__vs">VS</div>' +
+        '<div class="conflict__side">' + srcTag(c.b.src) +
+          '<div class="conflict__side-value">' + esc(c.b.value) + '</div></div>' +
+      '</div>' +
+      '<div class="conflict__resolution"><span>✓</span><div>' +
+        '<strong>' + esc(c.verdict) + '</strong> ' + esc(c.why) +
+      '</div></div>' +
+    '</div>';
+  }
+
+  function nbaCard(a) {
+    return '' +
+    '<div class="nba-card">' +
+      '<div class="nba-card__icon nba-card__icon--' + a.tone + '">' + a.icon + '</div>' +
+      '<div class="nba-card__body">' +
+        '<div class="nba-card__label' + (a.ai ? ' nba-card__label--ai' : '') + '">' +
+          esc(a.label) + '</div>' +
+        '<div class="nba-card__title">' + esc(a.title) + '</div>' +
+        '<div class="nba-card__desc">' + esc(a.desc) + '</div>' +
+        '<div class="prov-factor__foot" style="margin-top:var(--space-2);">' + a.prov + '</div>' +
+        '<div class="nba-card__actions">' +
+          a.buttons.map(function (b) {
+            return '<button class="btn btn--' + b.kind + ' btn--sm">' + esc(b.text) + '</button>';
+          }).join('') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderDetail(p) {
+    var contact = contactText(p);
+    detailPanel.innerHTML = '' +
+    '<div class="detail-head">' +
+      '<div class="row row--center" style="justify-content:space-between;">' +
+        '<div>' +
+          '<div class="detail-head__name">' + esc(p.name) + '</div>' +
+          '<div class="detail-head__meta">MRN ' + esc(p.mrn) + ' · ' + p.age + p.sex +
+            ' · Discharged ' + esc(p.dischargedOn) + '</div>' +
+        '</div>' +
+        '<span class="badge badge--' + p.tier + '">' + TIER[p.tier] + ' Risk</span>' +
+      '</div>' +
+      '<div class="detail-score">' +
+        '<div class="score-ring score-ring--' + p.tier + '">' + p.score + '</div>' +
+        '<div class="detail-score__meta">' +
+          '<strong style="color:var(--gray-900);font-size:12px;">Readmission Risk Score</strong><br />' +
+          'Source: Salesforce Data Cloud<br />' +
+          'As of Sep 17, 9:42 AM · Model v2.3' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="tab-row">' +
+      '<div class="tab active">Actions</div>' +
+      '<div class="tab">Timeline</div>' +
+      '<div class="tab">Details</div>' +
+    '</div>' +
+
+    '<div class="tab-panel active"><div class="panel__body">' +
+
+      '<div class="sync-bar">' +
+        '<span>⚠️</span> Epic data last synced 4h 12m ago — scores may be stale' +
+      '</div>' +
+
+      '<div class="section-label">How this score is composed</div>' +
+      '<div class="score-math">' +
+        '<div class="score-math__part">' +
+          '<div class="score-math__num score-math__num--epic">' + p.epicPts + '</div>' +
+          '<div class="score-math__cap">Clinical<br/>Epic</div>' +
+        '</div>' +
+        '<div class="score-math__op">+</div>' +
+        '<div class="score-math__part">' +
+          '<div class="score-math__num score-math__num--sfdc">' + p.sfdcPts + '</div>' +
+          '<div class="score-math__cap">Engagement<br/>Salesforce</div>' +
+        '</div>' +
+        '<div class="score-math__op">=</div>' +
+        '<div class="score-math__part">' +
+          '<div class="score-math__num score-math__num--total">' + p.score + '</div>' +
+          '<div class="score-math__cap">Unified<br/>Risk Score</div>' +
+        '</div>' +
+      '</div>' +
+      '<p class="muted" style="font-size:11px;line-height:1.5;margin-bottom:var(--space-5);">' +
+        'Neither system can produce this score alone. Epic holds the clinical history; ' +
+        'Salesforce holds the engagement history. This score exists only because both are read together.' +
+      '</p>' +
+
+      '<div class="section-label">Contributing factors</div>' +
+      '<div style="margin-bottom:var(--space-5);">' +
+        p.factors.map(factorRow).join('') +
+      '</div>' +
+
+      '<div class="divider"></div>' +
+
+      '<div class="section-label">Reconciled by this app</div>' +
+      (p.conflicts.length
+        ? p.conflicts.map(conflictBlock).join('')
+        : '<div class="conflict__resolution"><span>✓</span><div>' +
+            '<strong>No conflicts.</strong> Epic and Salesforce agree on every field ' +
+            'the coordinator needs for this patient.</div></div>') +
+
+      '<div class="divider"></div>' +
+
+      '<div class="section-label">Next Best Actions</div>' +
+      p.actions.map(nbaCard).join('') +
+
+      '<div class="divider"></div>' +
+
+      '<div class="section-label">Log an Outcome — ' + esc(p.name) + '</div>' +
+      (contact
+        ? '<p class="muted" style="font-size:11px;margin-bottom:var(--space-3);">' +
+            'Last contact: ' + esc(contact) + '</p>'
+        : '<p class="muted" style="font-size:11px;margin-bottom:var(--space-3);">' +
+            'No contact logged since discharge.</p>') +
+      '<div class="input-group">' +
+        '<label class="input-label">Call Result</label>' +
+        '<select class="select" data-role="outcome">' +
+          '<option>Select outcome…</option>' +
+          '<option>Reached — patient responsive</option>' +
+          '<option>Left voicemail</option>' +
+          '<option>No answer</option>' +
+          '<option>Patient refused</option>' +
+          '<option>Escalate to social work</option>' +
+        '</select>' +
+      '</div>' +
+      '<div class="input-group">' +
+        '<label class="input-label">Notes</label>' +
+        '<textarea class="input" data-role="note" placeholder="e.g. Confirmed transportation ' +
+          'barrier — no ride to pharmacy. Referred to patient transport services."></textarea>' +
+      '</div>' +
+      '<button class="btn btn--primary btn--block" data-role="save-outcome">Save Outcome</button>' +
+      '<div class="muted" style="text-align:center;margin-top:var(--space-3);font-size:11px;line-height:1.6;">' +
+        'Writes once to ' + srcTag('hc') + '<br />No duplicate entry in Epic required' +
+      '</div>' +
+    '</div></div>';
+  }
+
+  /* ─── Activity timeline ─────────────────────────── */
+  function timelineFor(p) {
+    var items = [
+      { dot: 'red', icon: '🏥', title: 'ED Admission',
+        desc: p.admit.desc, time: p.admit.time, src: 'epic' },
+      { dot: '', icon: '📋', title: 'Discharged — Clinical Record Closed',
+        desc: p.discharge.desc, time: p.discharge.time, src: 'epic' },
+      { dot: '', icon: '⚡', title: 'Risk Scored — Flagged ' + TIER[p.tier],
+        desc: 'Epic clinical data joined with Salesforce engagement history. Score ' +
+              p.score + '/100.',
+        time: p.dischargedOn + ', 2026 · 9:31 AM', src: 'dc' },
+      { dot: '', icon: '🤖',
+        title: p.actions.length + ' Next Best Action' + (p.actions.length === 1 ? '' : 's') +
+               ' Generated',
+        desc: p.actions.map(function (a) { return a.title; }).join(' · ') +
+              '. Routed to coordinator queue.',
+        time: p.dischargedOn + ', 2026 · 9:32 AM', src: 'agent' },
+      { dot: 'maroon', icon: '👤', title: 'Assigned to Sarah Lin',
+        desc: p.assignNote || 'Auto-assigned by caseload balancing rule.',
+        time: p.assignedOn + ', 2026 · 8:00 AM', src: 'hc' }
+    ];
+    return items.concat(p.events || []);
+  }
+
+  function renderActivity(p) {
+    activityPanel.innerHTML = '' +
+    '<div class="panel__head"><div>' +
+      '<div class="panel__title">Recent Activity</div>' +
+      '<div class="panel__sub">' + esc(p.name) + ' · unified Epic + Salesforce timeline</div>' +
+    '</div></div>' +
+    '<div class="panel__body"><div class="timeline">' +
+      timelineFor(p).map(function (t) {
+        return '' +
+        '<div class="timeline-item">' +
+          '<div class="timeline-dot' + (t.dot ? ' timeline-dot--' + t.dot : '') + '">' +
+            t.icon + '</div>' +
+          '<div class="timeline-body">' +
+            '<div class="timeline-body__title">' + esc(t.title) + '</div>' +
+            '<div class="timeline-body__desc">' + esc(t.desc) + '</div>' +
+            '<div class="timeline-body__time">' + esc(t.time) + ' &nbsp;' + srcTag(t.src) + '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('') +
+    '</div></div>';
+  }
+
+  /* ─── Selection ─────────────────────────────────── */
+  var selectedId = BASE[0].id;
+
+  function paintSelection() {
+    Array.prototype.forEach.call(queueBody.querySelectorAll('tr[data-pt]'), function (tr) {
+      var on = tr.getAttribute('data-pt') === selectedId;
+      tr.classList.toggle('selected', on);
+      tr.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+  }
+
+  function select(id) {
+    var p = patientById(id);
+    if (!p) return;
+    selectedId = id;
+    paintSelection();
+    renderDetail(p);
+    renderActivity(p);
+  }
+
+  queueBody.addEventListener('click', function (e) {
+    var tr = e.target.closest('tr[data-pt]');
+    if (tr) select(tr.getAttribute('data-pt'));
+  });
+
+  queueBody.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var tr = e.target.closest('tr[data-pt]');
+    if (!tr) return;
+    e.preventDefault();
+    select(tr.getAttribute('data-pt'));
+  });
 
   /* ─── Inbox ─────────────────────────────────────── */
   function renderInbox() {
@@ -763,43 +1111,55 @@
     }
   });
 
-  /* ─── Queue injection ───────────────────────────── */
-  function renderQueue() {
-    // Drop previously injected rows, then re-add from state.
-    Array.prototype.slice.call(queueBody.querySelectorAll('[data-injected]'))
-      .forEach(function (n) { n.remove(); });
-
-    var mine = UCM.assignedTo(ME).sort(function (a, b) { return b.score - a.score; });
-
-    mine.forEach(function (p) {
-      var isNew = !seen[p.id];
-      seen[p.id] = true;
-
-      var tr = document.createElement('tr');
-      tr.className = 'row--high' + (isNew ? ' row--new' : '');
-      tr.setAttribute('data-injected', '1');
-      tr.innerHTML =
-        '<td><div class="cell-name">' + esc(p.name) + '</div>' +
-          '<div class="cell-sub">MRN ' + p.mrn + ' · ' + p.age + p.sex + '</div></td>' +
-        '<td><span class="badge badge--high">High</span></td>' +
-        '<td><span class="cell-score cell-score--high">' + p.score + '</span></td>' +
-        '<td>' + esc(p.dx) + '</td>' +
-        '<td>' + Math.floor(p.hoursSince / 24) + ' days ago</td>' +
-        '<td class="' + (p.contacted ? 'cell-muted' : 'cell-unassigned') + '">' +
-          (p.contacted ? esc(p.lastOutcome || 'Contacted') : 'Never') + '</td>' +
-        '<td class="cell-action">📞 Call today</td>';
-      queueBody.insertBefore(tr, queueBody.firstChild);
-    });
-
-    if (sideBadge) sideBadge.textContent = BASE_COUNT + mine.length;
-    var sub = document.querySelector('.page-head__sub');
-    if (sub) {
-      sub.textContent = (BASE_COUNT + mine.length) +
-        ' patients assigned · sorted by readmission risk · Thursday, September 17';
-    }
+  /* ─── Queue ───────────────────────────────────────
+     Session-assigned patients sort above the baseline caseload.
+     Rebuilt whole, so logged outcomes and the selected row stay
+     in step with each other. */
+  function rowCells(p) {
+    var contact = contactText(p);
+    return '' +
+    '<td><div class="cell-name">' + esc(p.name) + '</div>' +
+      '<div class="cell-sub">MRN ' + esc(p.mrn) + ' \u00b7 ' + p.age + p.sex + '</div></td>' +
+    '<td><span class="badge badge--' + p.tier + '">' + TIER[p.tier] + '</span></td>' +
+    '<td><span class="cell-score cell-score--' + p.tier + '">' + p.score + '</span></td>' +
+    '<td>' + esc(p.dx) + '</td>' +
+    '<td>' + esc(p.dischargedAgo) + '</td>' +
+    '<td class="' + (contact ? 'cell-muted' : 'cell-unassigned') + '">' +
+      esc(contact || 'Never') + '</td>' +
+    '<td class="cell-action">' + esc(p.nextAction) + '</td>';
   }
 
-  /* ─── Live reactions ────────────────────────────── */
+  function renderQueue() {
+    var mine = UCM.assignedTo(ME).sort(function (a, b) { return b.score - a.score; });
+
+    var rows = mine.map(function (p) {
+      var isNew = !seen[p.id];
+      seen[p.id] = true;
+      return { p: fromPool(p), isNew: isNew };
+    }).concat(BASE.map(function (p) { return { p: p, isNew: false }; }));
+
+    queueBody.innerHTML = rows.map(function (r) {
+      return '<tr class="row--' + r.p.tier + (r.isNew ? ' row--new' : '') +
+        '" data-pt="' + esc(r.p.id) + '" tabindex="0" aria-selected="false">' +
+        rowCells(r.p) + '</tr>';
+    }).join('');
+
+    var total = BASE.length + mine.length;
+    if (sideBadge) sideBadge.textContent = total;
+    var sub = document.querySelector('.page-head__sub');
+    if (sub) {
+      sub.textContent = total +
+        ' patients assigned \u00b7 sorted by readmission risk \u00b7 Thursday, September 17';
+    }
+
+    // The selected patient may have just been unassigned.
+    if (!patientById(selectedId)) { select(rows[0].p.id); return; }
+    paintSelection();
+  }
+
+  /* ─── Live reactions ──────────────────────── */
+  /* The detail panel is deliberately left alone here — re-rendering it
+     on every session event would wipe a half-typed outcome note. */
   function renderAll() { renderInbox(); renderDelegations(); renderQueue(); }
 
   UCM.subscribe(function (state, evt) {
@@ -810,40 +1170,40 @@
     })) {
       var pt = state.pool.filter(function (p) { return p.id === evt.patientId; })[0];
       UCM.toast('New patient assigned',
-        'James Porter assigned you ' + pt.name + ' — risk ' + pt.score + '.', 'assign');
+        'James Porter assigned you ' + pt.name + ' \u2014 risk ' + pt.score + '.', 'assign');
     }
     if (evt.type === 'message' && evt.coordId === ME) {
       var m = UCM.inbox(ME)[0];
       UCM.toast('Message from James Porter',
-        m ? m.body.slice(0, 90) + (m.body.length > 90 ? '…' : '') : '', 'info');
+        m ? m.body.slice(0, 90) + (m.body.length > 90 ? '\u2026' : '') : '', 'info');
     }
   });
 
   window.addEventListener('storage', function () { renderAll(); });
 
   /* ─── Call logging writes back to the manager ───── */
-  var saveBtn = Array.prototype.slice.call(document.querySelectorAll('.btn--block'))
-    .filter(function (b) { return /Save Outcome/i.test(b.textContent); })[0];
-  if (saveBtn) {
-    saveBtn.addEventListener('click', function () {
-      var sel = saveBtn.closest('.panel__body').querySelector('select.select');
-      var note = saveBtn.closest('.panel__body').querySelector('textarea.input');
-      var outcome = sel && sel.selectedIndex > 0 ? sel.value || sel.options[sel.selectedIndex].text : null;
-      if (!outcome) { if (sel) sel.focus(); return; }
+  detailPanel.addEventListener('click', function (e) {
+    if (!e.target.closest('[data-role="save-outcome"]')) return;
 
-      var mine = UCM.assignedTo(ME);
-      var target = mine.length ? mine[0].id : 'p-darnell';
-      UCM.logCall(target, ME, outcome, note ? note.value : '');
+    var sel  = detailPanel.querySelector('[data-role="outcome"]');
+    var note = detailPanel.querySelector('[data-role="note"]');
+    var outcome = sel && sel.selectedIndex > 0 ? sel.options[sel.selectedIndex].text : null;
+    if (!outcome) { if (sel) sel.focus(); return; }
 
-      if (sel) sel.selectedIndex = 0;
-      if (note) note.value = '';
-      UCM.toast('Outcome saved', 'Written to Health Cloud. Manager activity feed updated.', 'ok');
-    });
-  }
+    var p = patientById(selectedId);
+    if (!p) return;
+
+    localContact[p.id] = outcome + ' \u00b7 just now';
+    UCM.logCall(p.id, ME, outcome, note ? note.value : '', p.name);
+    select(p.id);
+    UCM.toast('Outcome saved', 'Written to Health Cloud. Manager activity feed updated.', 'ok');
+  });
 
   document.getElementById('demoReset').addEventListener('click', function () {
-    UCM.reset();
     seen = {};
+    localContact = {};
+    UCM.reset();
+    select(BASE[0].id);
     UCM.toast('Demo reset', 'Session state cleared.', 'info');
   });
 
@@ -852,6 +1212,7 @@
   // Anything already assigned at load is pre-existing — don't flash it as new
   UCM.assignedTo(ME).forEach(function (p) { seen[p.id] = true; });
   renderAll();
+  select(selectedId);
 })();
 </script>
 
