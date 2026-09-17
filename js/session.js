@@ -53,12 +53,101 @@
       epicPts: 43, sfdcPts: 30, contacted: false, assignedTo: null }
   ];
 
+  /* ─── Established caseload ───────────────────────────
+     Patients already owned by a coordinator. Read-only
+     reference data for the manager's roster views — the
+     delegation loop runs off SEED_POOL above.
+     Columns: name, mrn, age, sex, dx, score, coordId, daysSince, lastOutcome */
+  var ROSTER_RAW = [
+    ['Darnell Washington','4820193',67,'M','CHF Exacerbation',88,'sarah',3,null],
+    ['Robert Osei','7730021',72,'M','Sepsis Recovery',84,'sarah',1,null],
+    ['Gloria Mensah','2214870',79,'F','COPD Exacerbation',81,'sarah',2,'Left voicemail'],
+    ['Curtis Bell','9081234',58,'M','Diabetic Ketoacidosis',77,'sarah',4,'Reached'],
+    ['Maria Okonkwo','3310485',54,'F','COPD',62,'sarah',7,'Reached'],
+    ['Thomas Nguyen','6612098',61,'M','Post-Op Cardiac',58,'sarah',5,'Reached'],
+    ['Yolanda Pierce','4471102',48,'F','Cellulitis',51,'sarah',6,'Reached'],
+    ['Angela Torres','5540882',44,'F','Appendectomy',22,'sarah',5,'Reached'],
+    ['Michael Adeyemi','1129334',39,'M','Laceration Repair',17,'sarah',8,'Reached'],
+
+    ['Wanda Blackwell','8820114',74,'F','CHF Exacerbation',86,'marcus',2,'Left voicemail'],
+    ['Hector Ramirez','5510298',69,'M','Pneumonia',80,'marcus',3,'Reached'],
+    ['Deborah Chen','7719023',66,'F','Acute Kidney Injury',78,'marcus',1,null],
+    ['Leonard Pike','3348871',71,'M','GI Bleed',74,'marcus',4,'Reached'],
+    ['Sandra Whitfield','9902143',57,'F','COPD',64,'marcus',6,'Reached'],
+    ['Omar Haddad','2264490',52,'M','Afib',55,'marcus',5,'Reached'],
+    ['Janet Kowalski','6673321',60,'F','Post-Op Orthopedic',43,'marcus',7,'Reached'],
+    ['Terrence Boyd','4419087',41,'M','Asthma',28,'marcus',9,'Reached'],
+
+    ['Ruth Ellery','7761200',83,'F','Stroke / TIA',91,'denise',2,'Reached'],
+    ['Clarence Muhammad','5583012',78,'M','CHF Exacerbation',87,'denise',3,'Reached'],
+    ['Pearl Dominguez','3392218',80,'F','Sepsis Recovery',85,'denise',1,'Reached'],
+    ['Vernon Ashby','8817745',75,'M','COPD Exacerbation',83,'denise',4,'Reached'],
+    ['Ida Nkemelu','2209983',72,'F','Acute Kidney Injury',79,'denise',5,'Left voicemail'],
+    ['Stanley Grubbs','6640021',68,'M','Diabetic Ketoacidosis',76,'denise',2,'Reached'],
+    ['Loretta Sims','4472290',81,'F','Pneumonia',75,'denise',6,'Reached'],
+    ['Eugene Tran','9938104',64,'M','GI Bleed',59,'denise',8,'Reached'],
+
+    ['Frances Okoro','5529940',76,'F','CHF Exacerbation',89,'anthony',3,null],
+    ['Dale Hutchins','7714488',70,'M','Sepsis Recovery',82,'anthony',2,null],
+    ['Bernice Colvin','3361027',73,'F','COPD Exacerbation',80,'anthony',4,null],
+    ['Ricardo Peña','8843319',65,'M','Pneumonia',78,'anthony',1,null],
+    ['Marlene Shaw','2287701',69,'F','Acute Kidney Injury',76,'anthony',5,'Left voicemail'],
+    ['Alvin Brooks','6619940',62,'M','Post-Op Cardiac',75,'anthony',3,null],
+    ['Constance Yu','4490128',56,'F','Afib',61,'anthony',7,'Reached'],
+    ['Darryl Means','9971203',50,'M','Cellulitis',47,'anthony',6,'Reached'],
+    ['Hollis Barnett','5504417',45,'M','Appendectomy',24,'anthony',9,'Reached'],
+
+    ['Estelle Rivers','7742891',77,'F','CHF Exacerbation',84,'priya',2,'Reached'],
+    ['Nathaniel Park','3319974',71,'M','COPD',73,'priya',4,'Reached'],
+    ['Juanita Delgado','8871140',67,'F','Pneumonia',68,'priya',3,'Reached'],
+    ['Wesley Frazier','2230018',59,'M','Diabetic Ketoacidosis',57,'priya',6,'Reached'],
+    ['Charlotte Ibe','6690273',53,'F','Post-Op Orthopedic',45,'priya',5,'Reached'],
+    ['Simon Kowalczyk','4438852',47,'M','Asthma',31,'priya',8,'Reached'],
+    ['Renee Caldwell','9917740',42,'F','Laceration Repair',19,'priya',10,'Reached'],
+
+    ['Mildred Anyanwu','5567103',85,'F','Stroke / TIA',90,'gerald',3,'Reached'],
+    ['Percy Lattimore','7798821',79,'M','CHF Exacerbation',81,'gerald',5,'Left voicemail'],
+    ['Geneva Suarez','3374460',74,'F','Sepsis Recovery',77,'gerald',4,'Reached'],
+    ['Otis Mbeki','8829015',70,'M','COPD Exacerbation',72,'gerald',6,'Reached'],
+    ['Roberta Finch','2251199',63,'F','Acute Kidney Injury',54,'gerald',7,'Reached'],
+    ['Andre Whitlock','6604428',55,'M','Afib',38,'gerald',9,'Reached']
+  ];
+
+  var DEFAULT_SETTINGS = {
+    highThreshold: 75,
+    mediumThreshold: 40,
+    contactWindowHours: 48,
+    defaultCapacity: 15,
+    autoAssignEnabled: true,
+    notifyOnUnassigned: true
+  };
+
+  function tierFor(score, s) {
+    s = s || DEFAULT_SETTINGS;
+    if (score >= s.highThreshold) return 'high';
+    if (score >= s.mediumThreshold) return 'medium';
+    return 'low';
+  }
+
+  var ROSTER = ROSTER_RAW.map(function (r, i) {
+    return {
+      id: 'r-' + i,
+      name: r[0], mrn: r[1], age: r[2], sex: r[3], dx: r[4],
+      score: r[5], assignedTo: r[6], daysSince: r[7],
+      hoursSince: r[7] * 24,
+      lastOutcome: r[8],
+      contacted: !!r[8],
+      fromPool: false
+    };
+  });
+
   function freshState() {
     return {
       v: 1,
       pool: JSON.parse(JSON.stringify(SEED_POOL)),
       messages: [],
       activity: [],
+      settings: JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),
       startedAt: Date.now()
     };
   }
@@ -80,6 +169,10 @@
       if (!raw) { var s = freshState(); write(s); return s; }
       var parsed = JSON.parse(raw);
       if (!parsed || parsed.v !== 1) { var f = freshState(); write(f); return f; }
+      // Forward-fill fields added after a session was already stored
+      if (!parsed.settings) parsed.settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+      if (!parsed.activity) parsed.activity = [];
+      if (!parsed.messages) parsed.messages = [];
       return parsed;
     } catch (e) {
       return memory || (memory = freshState());
@@ -188,6 +281,92 @@
 
     activity: function () { return read().activity; },
 
+    settings: function () { return read().settings; },
+
+    updateSettings: function (patch) {
+      var state = read();
+      Object.keys(patch).forEach(function (k) { state.settings[k] = patch[k]; });
+      logActivity(state, MANAGER.name, 'updated settings',
+        Object.keys(patch).join(', '), null);
+      commit(state, { type: 'settings', patch: patch });
+      return state.settings;
+    },
+
+    tierFor: function (score) { return tierFor(score, read().settings); },
+
+    /** Established caseload — read-only reference data. */
+    roster: function () { return ROSTER; },
+
+    /** Everything the manager oversees: established caseload + session pool. */
+    allPatients: function () {
+      var state = read();
+      var s = state.settings;
+      var pool = state.pool.map(function (p) {
+        return {
+          id: p.id, name: p.name, mrn: p.mrn, age: p.age, sex: p.sex, dx: p.dx,
+          score: p.score, assignedTo: p.assignedTo,
+          daysSince: Math.floor(p.hoursSince / 24), hoursSince: p.hoursSince,
+          lastOutcome: p.lastOutcome || null, contacted: !!p.contacted,
+          acknowledged: !!p.acknowledged, fromPool: true
+        };
+      });
+      return ROSTER.concat(pool).map(function (p) {
+        p.tier = tierFor(p.score, s);
+        return p;
+      });
+    },
+
+    /** Per-coordinator caseload rollup derived from allPatients(). */
+    caseloads: function () {
+      var all = API.allPatients();
+      var s = read().settings;
+      return COORDINATORS.map(function (c) {
+        var mine = all.filter(function (p) { return p.assignedTo === c.id; });
+        var high = mine.filter(function (p) { return p.tier === 'high'; });
+        var uncontacted = mine.filter(function (p) { return !p.contacted; });
+        var within = mine.filter(function (p) {
+          return p.contacted && p.hoursSince <= s.contactWindowHours;
+        });
+        var eligible = mine.filter(function (p) {
+          return p.hoursSince >= s.contactWindowHours;
+        });
+        var rate = eligible.length
+          ? Math.round((eligible.filter(function (p) { return p.contacted; }).length /
+              eligible.length) * 100)
+          : null;
+        return {
+          coord: c,
+          total: mine.length,
+          high: high.length,
+          uncontacted: uncontacted.length,
+          withinWindow: within.length,
+          contactRate: rate,
+          capacity: s.defaultCapacity,
+          overBy: Math.max(0, mine.length - s.defaultCapacity),
+          patients: mine
+        };
+      });
+    },
+
+    /** Suggest the best coordinator for a patient: lowest load, not away. */
+    suggestCoordinator: function () {
+      var loads = API.caseloads().filter(function (c) { return !c.coord.away; });
+      loads.sort(function (a, b) { return a.total - b.total; });
+      return loads.length ? loads[0].coord.id : 'sarah';
+    },
+
+    /** Assign every unassigned patient by load balancing. */
+    autoAssignAll: function () {
+      var pool = API.unassigned();
+      var results = [];
+      pool.forEach(function (p) {
+        var target = API.suggestCoordinator();
+        var r = API.assign(p.id, target, { priority: true });
+        if (r) results.push({ patient: r, coordId: target });
+      });
+      return results;
+    },
+
     /* ── Manager actions ─────────────────────────── */
 
     /** Assign an unassigned patient to a coordinator. */
@@ -283,7 +462,15 @@
         if (state.pool[i].id === patientId) { pt = state.pool[i]; break; }
       }
       var co = coordinator(coordId);
-      var name = pt ? pt.name : (patientName || patientId || 'patient');
+      // Prefer the pool record, then an explicitly passed name, then the
+      // established-caseload roster. Manager-side callers have the roster
+      // available and pass no name; coordinator-side callers pass one.
+      var name = pt ? pt.name : (patientName || (function () {
+        for (var j = 0; j < ROSTER.length; j++) {
+          if (ROSTER[j].id === patientId) return ROSTER[j].name;
+        }
+        return null;
+      })() || patientId || 'patient');
       if (pt) {
         pt.contacted = true;
         pt.lastOutcome = outcome;
