@@ -53,6 +53,33 @@
     .data-table tbody tr:focus-visible {
       outline: 2px solid var(--ucm-maroon); outline-offset: -2px;
     }
+    .evidence-panel {
+      background: linear-gradient(180deg, #F9F4F5 0%, #F5E8EB 100%);
+      border: 1px solid rgba(130, 11, 37, 0.18);
+      border-left: 4px solid var(--ucm-maroon);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      margin-bottom: var(--space-5);
+    }
+    .evidence-panel__label {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 10px; font-weight: 800; letter-spacing: 1.2px;
+      text-transform: uppercase; color: var(--ucm-maroon);
+      margin-bottom: var(--space-2);
+    }
+    .evidence-panel__text {
+      font-size: 12px; line-height: 1.5; color: var(--gray-700);
+      margin-bottom: var(--space-3);
+    }
+    .evidence-panel__meta {
+      display: flex; flex-wrap: wrap; gap: 6px;
+    }
+    .evidence-chip {
+      display: inline-flex; align-items: center; padding: 4px 8px;
+      border-radius: var(--radius-pill); background: rgba(130, 11, 37, 0.08);
+      color: var(--ucm-maroon-dark); font-size: 10px; font-weight: 700;
+      letter-spacing: 0.2px;
+    }
   </style>
 </head>
 <body>
@@ -152,7 +179,7 @@
     <div class="page-head">
       <div>
         <h1>My Patient Queue</h1>
-        <div class="page-head__sub">18 patients assigned · sorted by readmission risk · Thursday, September 17</div>
+        <div class="page-head__sub">18 patients assigned · evidence-based triage: early outreach, medication reconciliation, follow-up scheduling · Thursday, September 17</div>
       </div>
       <div class="page-head__actions">
         <div class="search-field">
@@ -170,8 +197,8 @@
     <div class="alert alert--error">
       <span class="alert__icon">🔴</span>
       <div>
-        <div class="alert__title">4 high-risk patients approaching the 48-hour window</div>
-        <div class="alert__body">Contact within the first 48 hours post-discharge is the strongest predictor of avoided readmission. These patients have not yet been reached.</div>
+        <div class="alert__title">4 high-risk patients approaching the 48–72 hour evidence window</div>
+        <div class="alert__body">Systematic reviews of discharge planning and transitional care consistently prioritize early post-discharge contact, medication reconciliation, and timely follow-up. These patients have not yet been reached.</div>
       </div>
       <div class="alert__action"><button class="btn btn--primary btn--sm">Show Only These</button></div>
     </div>
@@ -250,8 +277,326 @@
       <!-- ── DETAIL RAIL ───────────────────────────────── -->
       <!-- Both panels render from the selected patient. See renderDetail(). -->
       <div class="detail-col">
-        <div class="panel" id="detailPanel"></div>
-        <div class="panel" id="activityPanel"></div>
+        <div class="panel">
+          <div class="detail-head">
+            <div class="row row--center" style="justify-content:space-between;">
+              <div>
+                <div class="detail-head__name">Darnell Washington</div>
+                <div class="detail-head__meta">MRN 4820193 · 67M · Discharged Sep 14</div>
+              </div>
+              <span class="badge badge--high">High Risk</span>
+            </div>
+            <div class="detail-score">
+              <div class="score-ring score-ring--high">88</div>
+              <div class="detail-score__meta">
+                <strong style="color:var(--gray-900);font-size:12px;">Readmission Risk Score</strong><br />
+                Source: Salesforce Data Cloud<br />
+                As of Sep 17, 9:42 AM · Model v2.3
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-row">
+            <div class="tab active">Actions</div>
+            <div class="tab">Timeline</div>
+            <div class="tab">Details</div>
+          </div>
+
+          <!-- TAB: ACTIONS -->
+          <div class="tab-panel active">
+            <div class="panel__body">
+
+              <div class="sync-bar">
+                <span>⚠️</span> Epic data last synced 4h 12m ago — scores may be stale
+              </div>
+
+              <div class="section-label">How this score is composed</div>
+              <div class="score-math">
+                <div class="score-math__part">
+                  <div class="score-math__num score-math__num--epic">51</div>
+                  <div class="score-math__cap">Clinical<br/>Epic</div>
+                </div>
+                <div class="score-math__op">+</div>
+                <div class="score-math__part">
+                  <div class="score-math__num score-math__num--sfdc">37</div>
+                  <div class="score-math__cap">Engagement<br/>Salesforce</div>
+                </div>
+                <div class="score-math__op">=</div>
+                <div class="score-math__part">
+                  <div class="score-math__num score-math__num--total">88</div>
+                  <div class="score-math__cap">Unified<br/>Risk Score</div>
+                </div>
+              </div>
+              <p class="muted" style="font-size:11px;line-height:1.5;margin-bottom:var(--space-5);">
+                Neither system can produce this score alone. Epic holds the clinical history;
+                Salesforce holds the engagement history. This score exists only because both are read together.
+              </p>
+
+              <div class="section-label">Contributing factors</div>
+              <div style="margin-bottom:var(--space-5);">
+                <div class="prov-factor">
+                  <span class="prov-factor__arrow prov-factor__arrow--up">▲</span>
+                  <div class="prov-factor__body">
+                    <div class="prov-factor__text">2 prior ED readmissions in last 90 days</div>
+                    <div class="prov-factor__foot">
+                      <span class="src src--epic">Epic</span>
+                      <span class="prov-factor__weight">+24 pts</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="prov-factor">
+                  <span class="prov-factor__arrow prov-factor__arrow--up">▲</span>
+                  <div class="prov-factor__body">
+                    <div class="prov-factor__text">CHF primary diagnosis with prior exacerbation</div>
+                    <div class="prov-factor__foot">
+                      <span class="src src--epic">Epic</span>
+                      <span class="prov-factor__weight">+18 pts</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="prov-factor">
+                  <span class="prov-factor__arrow prov-factor__arrow--up">▲</span>
+                  <div class="prov-factor__body">
+                    <div class="prov-factor__text">Furosemide refill not picked up — 4 days overdue</div>
+                    <div class="prov-factor__foot">
+                      <span class="src src--epic">Epic</span>
+                      <span class="prov-factor__weight">+9 pts</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="prov-factor">
+                  <span class="prov-factor__arrow prov-factor__arrow--up">▲</span>
+                  <div class="prov-factor__body">
+                    <div class="prov-factor__text">No PCP follow-up appointment scheduled</div>
+                    <div class="prov-factor__foot">
+                      <span class="src src--sfdc">Salesforce</span>
+                      <span class="prov-factor__weight">+16 pts</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="prov-factor">
+                  <span class="prov-factor__arrow prov-factor__arrow--up">▲</span>
+                  <div class="prov-factor__body">
+                    <div class="prov-factor__text">Zero engagement touchpoints since discharge</div>
+                    <div class="prov-factor__foot">
+                      <span class="src src--sfdc">Salesforce</span>
+                      <span class="prov-factor__weight">+14 pts</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="prov-factor">
+                  <span class="prov-factor__arrow prov-factor__arrow--up">▲</span>
+                  <div class="prov-factor__body">
+                    <div class="prov-factor__text">Lives alone — no caregiver contact on file</div>
+                    <div class="prov-factor__foot">
+                      <span class="src src--sfdc">Salesforce</span>
+                      <span class="prov-factor__weight">+12 pts</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="prov-factor">
+                  <span class="prov-factor__arrow prov-factor__arrow--down">▼</span>
+                  <div class="prov-factor__body">
+                    <div class="prov-factor__text">Enrolled in MyChart and opted in to SMS</div>
+                    <div class="prov-factor__foot">
+                      <span class="src src--sfdc">Salesforce</span>
+                      <span class="prov-factor__weight">−5 pts</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="section-label">Reconciled by this app</div>
+              <div class="conflict">
+                <div class="conflict__head">⚠️ Conflicting phone numbers</div>
+                <div class="conflict__versus">
+                  <div class="conflict__side">
+                    <span class="src src--epic">Epic</span>
+                    <div class="conflict__side-value">(773) 555-0142</div>
+                  </div>
+                  <div class="conflict__vs">VS</div>
+                  <div class="conflict__side">
+                    <span class="src src--sfdc">Salesforce</span>
+                    <div class="conflict__side-value">(312) 555-0198</div>
+                  </div>
+                </div>
+                <div class="conflict__resolution">
+                  <span>✓</span>
+                  <div>
+                    <strong>Using Salesforce number.</strong> Patient answered on this line 6 days ago
+                    during a Marketing Cloud SMS reply. Epic number last verified 14 months ago.
+                  </div>
+                </div>
+              </div>
+
+              <div class="conflict">
+                <div class="conflict__head">⚠️ Discharge status mismatch</div>
+                <div class="conflict__versus">
+                  <div class="conflict__side">
+                    <span class="src src--epic">Epic</span>
+                    <div class="conflict__side-value">Discharged Sep 14</div>
+                  </div>
+                  <div class="conflict__vs">VS</div>
+                  <div class="conflict__side">
+                    <span class="src src--sfdc">Salesforce</span>
+                    <div class="conflict__side-value">Case: Inpatient</div>
+                  </div>
+                </div>
+                <div class="conflict__resolution">
+                  <span>✓</span>
+                  <div>
+                    <strong>Trusting Epic.</strong> Epic is source of truth for clinical status.
+                    Salesforce case did not close — sync lag. Flagged for admin cleanup.
+                  </div>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="evidence-panel">
+                <div class="evidence-panel__label">Evidence rationale</div>
+                <div class="evidence-panel__text">
+                  Post-discharge reviews consistently prioritize early contact, medication reconciliation,
+                  and timely follow-up in the first 48–72 hours and first week after discharge to reduce avoidable readmissions.
+                </div>
+                <div class="evidence-panel__meta">
+                  <span class="evidence-chip">transitional care</span>
+                  <span class="evidence-chip">discharge planning</span>
+                  <span class="evidence-chip">medication review</span>
+                </div>
+              </div>
+
+              <div class="section-label">Evidence-Based Care Plan</div>
+
+              <div class="nba-card">
+                <div class="nba-card__icon nba-card__icon--call">📞</div>
+                <div class="nba-card__body">
+                  <div class="nba-card__label nba-card__label--ai">Recommended · High Priority</div>
+                  <div class="nba-card__title">Reach patient within 48–72 hours</div>
+                  <div class="nba-card__desc">Early post-discharge contact is a core readmission-prevention strategy in transitional care literature. Confirm symptoms, diet, hydration, and red-flag symptoms before the patient falls behind.</div>
+                  <div class="prov-factor__foot" style="margin-top:var(--space-2);">
+                    <span class="src src--agent">Agentforce</span>
+                    <span class="muted" style="font-size:10px;">reasoning from <span class="src src--epic">Epic</span> + <span class="src src--sfdc">Salesforce</span></span>
+                  </div>
+                  <div class="nba-card__actions">
+                    <button class="btn btn--primary btn--sm">Log Call</button>
+                    <button class="btn btn--ghost btn--sm">Dismiss</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="nba-card">
+                <div class="nba-card__icon nba-card__icon--visit">🏥</div>
+                <div class="nba-card__body">
+                  <div class="nba-card__label nba-card__label--ai">Recommended · Medium Priority</div>
+                  <div class="nba-card__title">Confirm follow-up within 7 days</div>
+                  <div class="nba-card__desc">Follow-up scheduling within the first week after discharge is a consistent readmission-prevention target in discharge-planning reviews. Confirm PCP, specialist, or home-health visits and transportation needs.</div>
+                  <div class="prov-factor__foot" style="margin-top:var(--space-2);">
+                    <span class="src src--agent">Agentforce</span>
+                    <span class="muted" style="font-size:10px;">writes to <span class="src src--epic">MyChart</span></span>
+                  </div>
+                  <div class="nba-card__actions">
+                    <button class="btn btn--secondary btn--sm">Open MyChart</button>
+                    <button class="btn btn--ghost btn--sm">Dismiss</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="nba-card">
+                <div class="nba-card__icon nba-card__icon--rx">💊</div>
+                <div class="nba-card__body">
+                  <div class="nba-card__label">Evidence-based · One-Click Trigger</div>
+                  <div class="nba-card__title">Reconcile medications and address barriers</div>
+                  <div class="nba-card__desc">Medication reconciliation and barrier checks are central to post-discharge transition quality. Confirm refill access, therapy adherence, and any affordability or transportation obstacles.</div>
+                  <div class="prov-factor__foot" style="margin-top:var(--space-2);">
+                    <span class="muted" style="font-size:10px;">Rx data <span class="src src--epic">Epic</span> · consent <span class="src src--sfdc">Salesforce</span> · sends via <span class="src src--mc">Marketing Cloud</span></span>
+                  </div>
+                  <div class="nba-card__actions">
+                    <button class="btn btn--secondary btn--sm">Send Now</button>
+                    <button class="btn btn--ghost btn--sm">Dismiss</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="section-label">Log an Outcome</div>
+              <div class="input-group">
+                <label class="input-label">Call Result</label>
+                <select class="select">
+                  <option>Select outcome…</option>
+                  <option>Reached — patient responsive</option>
+                  <option>Left voicemail</option>
+                  <option>No answer</option>
+                  <option>Patient refused</option>
+                  <option>Escalate to social work</option>
+                </select>
+              </div>
+              <div class="input-group">
+                <label class="input-label">Notes</label>
+                <textarea class="input" placeholder="e.g. Confirmed transportation barrier — no ride to pharmacy. Referred to patient transport services."></textarea>
+              </div>
+              <button class="btn btn--primary btn--block">Save Outcome</button>
+              <div class="muted" style="text-align:center;margin-top:var(--space-3);font-size:11px;line-height:1.6;">
+                Writes once to <span class="src src--sfdc">Health Cloud</span><br />
+                No duplicate entry in Epic required
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent activity preview -->
+        <div class="panel">
+          <div class="panel__head">
+            <div class="panel__title">Recent Activity</div>
+          </div>
+          <div class="panel__body">
+            <div class="timeline">
+              <div class="timeline-item">
+                <div class="timeline-dot timeline-dot--red">🏥</div>
+                <div class="timeline-body">
+                  <div class="timeline-body__title">ED Admission</div>
+                  <div class="timeline-body__desc">Admitted via Emergency — CHF exacerbation, shortness of breath.</div>
+                  <div class="timeline-body__time">Sep 14, 2026 · 11:42 PM &nbsp;<span class="src src--epic">Epic</span></div>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot">📋</div>
+                <div class="timeline-body">
+                  <div class="timeline-body__title">Discharged — Clinical Record Closed</div>
+                  <div class="timeline-body__desc">Discharge orders signed. Furosemide 40mg prescribed.</div>
+                  <div class="timeline-body__time">Sep 14, 2026 · 9:15 AM &nbsp;<span class="src src--epic">Epic</span></div>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot">⚡</div>
+                <div class="timeline-body">
+                  <div class="timeline-body__title">Risk Scored — Flagged High</div>
+                  <div class="timeline-body__desc">Epic clinical data joined with Salesforce engagement history. Score 88/100.</div>
+                  <div class="timeline-body__time">Sep 14, 2026 · 9:31 AM &nbsp;<span class="src src--sfdc">Data Cloud</span></div>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot">🤖</div>
+                <div class="timeline-body">
+                  <div class="timeline-body__title">3 Next Best Actions Generated</div>
+                  <div class="timeline-body__desc">Call, schedule follow-up, medication reminder. Routed to coordinator queue.</div>
+                  <div class="timeline-body__time">Sep 14, 2026 · 9:32 AM &nbsp;<span class="src src--agent">Agentforce</span></div>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot timeline-dot--maroon">👤</div>
+                <div class="timeline-body">
+                  <div class="timeline-body__title">Assigned to Sarah Lin</div>
+                  <div class="timeline-body__desc">Auto-assigned by caseload balancing rule.</div>
+                  <div class="timeline-body__time">Sep 15, 2026 · 8:00 AM &nbsp;<span class="src src--sfdc">Health Cloud</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>

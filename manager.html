@@ -135,6 +135,32 @@
         <div>
           <h1>Team Dashboard</h1>
           <div class="page-head__sub">
+            Post-Discharge Care Coordination · evidence-based readmission prevention model · <span id="dashTeamCount">6</span> coordinators · Thursday, September 17
+          </div>
+        </div>
+        <div class="page-head__actions">
+          <select class="select select--sm" style="width:auto;">
+            <option>Today</option>
+            <option>This Week</option>
+            <option>Last 30 Days</option>
+          </select>
+          <button class="btn btn--secondary btn--sm" id="exportHuddle">Export for Huddle</button>
+        </div>
+      </div>
+
+      <div class="alert alert--error">
+        <span class="alert__icon">🔴</span>
+        <div>
+          <div class="alert__title">7 high-risk patients have no assigned coordinator</div>
+          <div class="alert__body">These patients are past 24 hours post-discharge with no owner. In evidence-based discharge planning, the first 48–72 hours and the first week after discharge are the highest-leverage window to prevent avoidable readmissions.</div>
+        </div>
+      </div>
+
+      <div class="stat-row stat-row--5" id="dashKpis"></div>
+
+      <div class="panel" id="dashAssignPanel">
+        <div class="panel__head" style="background: var(--risk-high-bg); border-bottom-color: #ffcdd2;">
+          <div class="page-head__sub">
             Post-Discharge Care Coordination · <span id="dashTeamCount">6</span> coordinators · Thursday, September 17
           </div>
         </div>
