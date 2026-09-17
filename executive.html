@@ -136,6 +136,43 @@
       font-family: var(--font-serif); font-size: 16px; font-style: italic;
       color: var(--ucm-maroon-dark); line-height: 1.6;
     }
+
+    /* ── KPI GOAL TRACKING ──────────────────── */
+    .kpi-row {
+      display: flex; align-items: flex-start; gap: var(--space-5);
+      padding: var(--space-5) 0; border-bottom: 1px solid var(--gray-100);
+    }
+    .kpi-row:last-child { border-bottom: none; }
+    .kpi-row__meta { width: 210px; flex-shrink: 0; }
+    .kpi-row__name { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+    .kpi-row__type {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.1px;
+      text-transform: uppercase; color: var(--gray-500);
+    }
+    .kpi-row__projection { font-size: 11px; color: var(--gray-500); margin-top: var(--space-3); line-height: 1.5; }
+    .kpi-row__bar-col { flex: 1; }
+    .kpi-row__bar-wrap {
+      position: relative; height: 22px;
+      background: var(--gray-100); border-radius: var(--radius-sm);
+      overflow: hidden; margin-bottom: var(--space-2);
+    }
+    .kpi-row__bar {
+      height: 100%; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: flex-end;
+      padding-right: var(--space-2);
+    }
+    .kpi-row__bar-pct { font-size: 10px; font-weight: 800; color: white; }
+    .kpi-row__bar--green { background: var(--risk-low-dot); }
+    .kpi-row__bar--amber { background: var(--risk-medium-dot); }
+    .kpi-row__bar--red   { background: var(--risk-high-dot); }
+    .kpi-row__footnote { display: flex; gap: var(--space-5); font-size: 11px; color: var(--gray-500); }
+    .kpi-row__footnote strong { color: var(--gray-900); }
+    .kpi-row__aside {
+      width: 140px; flex-shrink: 0;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+    }
+    .kpi-row__current { font-size: 26px; font-weight: 800; line-height: 1; }
+    .kpi-row__target-text { font-size: 11px; color: var(--gray-500); text-align: right; }
   </style>
 </head>
 <body>
@@ -243,96 +280,6 @@
       </div>
     </div>
 
-    <!-- ── WHAT CHANGED ARCHITECTURALLY ───────────────── -->
-    <div class="panel">
-      <div class="panel__head">
-        <div>
-          <div class="panel__title">What Actually Changed</div>
-          <div class="panel__sub">The program shifted from reactive work to an evidence-based transition bundle: early outreach, medication reconciliation, follow-up scheduling, and social barrier resolution.</div>
-        </div>
-      </div>
-      <div class="panel__body">
-        <div class="arch">
-
-          <!-- BEFORE -->
-          <div class="arch__panel arch__panel--before">
-            <div class="arch__panel-label">Before — Two Systems, No Bridge</div>
-
-            <div class="arch__silo arch__silo--epic">
-              <div class="arch__silo-name" style="color:var(--sys-epic);">Epic EHR</div>
-              <div class="arch__silo-desc">
-                Knows who was discharged, their diagnosis,
-                their medications, their prior admissions.
-                Does not know if anyone called them.
-              </div>
-            </div>
-
-            <div class="arch__break">✕ &nbsp;no shared view &nbsp;✕</div>
-
-            <div class="arch__silo arch__silo--sfdc">
-              <div class="arch__silo-name" style="color:var(--sys-sfdc);">Salesforce</div>
-              <div class="arch__silo-desc">
-                Knows who was called, who opted into SMS,
-                who has a coordinator assigned.
-                Does not know who is clinically at risk.
-              </div>
-            </div>
-
-            <div style="margin-top:var(--space-4);padding-top:var(--space-4);border-top:1px solid var(--border);font-size:11px;color:var(--gray-500);line-height:1.6;">
-              Coordinators reconciled the two by hand — reading an Epic discharge
-              report on one screen, searching Salesforce on another. Prioritization
-              was memory and guesswork.
-            </div>
-          </div>
-
-          <div class="arch__arrow">→</div>
-
-          <!-- AFTER -->
-          <div class="arch__panel arch__panel--after">
-            <div class="arch__panel-label">After — Joined at the Point of Decision</div>
-
-            <div class="arch__silo arch__silo--epic">
-              <div class="arch__silo-name" style="color:var(--sys-epic);">Epic EHR</div>
-              <div class="arch__silo-desc">Unchanged. Still clinical source of truth.</div>
-            </div>
-
-            <div style="text-align:center;color:var(--gray-300);font-size:15px;">↓ &nbsp; ↓</div>
-
-            <div class="arch__silo arch__silo--sfdc">
-              <div class="arch__silo-name" style="color:var(--sys-sfdc);">Salesforce Data Cloud</div>
-              <div class="arch__silo-desc">Unchanged. Still engagement source of truth.</div>
-            </div>
-
-            <div style="text-align:center;color:var(--ucm-maroon);font-size:15px;">↓</div>
-
-            <div class="arch__hub">
-              <div class="arch__hub-name">Care Coordination Layer</div>
-              <div class="arch__hub-desc">
-                Reads both · resolves conflicts · scores risk ·
-                routes to the right coordinator
-              </div>
-            </div>
-
-            <div style="margin-top:var(--space-4);padding-top:var(--space-4);border-top:1px solid #E8C8CE;font-size:11px;color:var(--ucm-maroon-dark);line-height:1.6;">
-              One prioritized list. Every value carries its origin. Conflicts between
-              the systems are resolved by explicit rule and shown to the coordinator —
-              not hidden.
-            </div>
-          </div>
-
-        </div>
-
-        <div class="insight-card">
-          <div class="insight-card__label">Why this matters strategically</div>
-          <div class="insight-card__text">
-            We did not have to win the Epic-versus-Salesforce argument to make progress.
-            Both systems keep their territory. The orchestration layer sits above them and
-            is the only place that needs to understand both — which means this approach
-            is replicable for any other cross-system problem we face.
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- ── KPI ROW ────────────────────────────────────── -->
     <div class="stat-row stat-row--4">
@@ -356,6 +303,140 @@
         <div class="stat-tile__label">Patients Under Management</div>
         <div class="stat-tile__value">133</div>
         <div class="stat-tile__sub">active post-discharge</div>
+      </div>
+    </div>
+
+    <!-- ── KPI GOAL TRACKING ────────────────────────── -->
+    <div class="panel">
+      <div class="panel__head">
+        <div>
+          <div class="panel__title">Annual KPI Goals — Rate Tracking</div>
+          <div class="panel__sub">FY2026 targets · Updated September 17, 2026 · 15 days remaining in fiscal year</div>
+        </div>
+        <div style="display:flex; gap:var(--space-3); align-items:center;">
+          <span class="badge badge--low">1 On Track</span>
+          <span class="badge badge--medium">3 At Risk</span>
+        </div>
+      </div>
+      <div class="panel__body">
+
+        <!-- Row 1: 30-Day Readmission Rate — On Track -->
+        <div class="kpi-row">
+          <div class="kpi-row__meta">
+            <div class="kpi-row__name">30-Day Readmission Rate</div>
+            <div class="kpi-row__type">North Star</div>
+            <div class="kpi-row__projection">Projection: <strong>18.1%</strong> by year-end — on pace to achieve FY2026 target.</div>
+          </div>
+          <div class="kpi-row__bar-col">
+            <div class="kpi-row__bar-wrap">
+              <div class="kpi-row__bar kpi-row__bar--green" style="width:97%;">
+                <span class="kpi-row__bar-pct">97%</span>
+              </div>
+            </div>
+            <div class="kpi-row__footnote">
+              <span>Current: <strong>18.4%</strong></span>
+              <span>Target: <strong>≤18.3%</strong> (↓15% from FY2025 baseline of 21.5%)</span>
+              <span>Gap: <strong style="color:var(--risk-medium-text);">0.1 pts</strong></span>
+            </div>
+          </div>
+          <div class="kpi-row__aside">
+            <div class="kpi-row__current" style="color:var(--risk-low-text);">18.4%</div>
+            <div class="kpi-row__target-text">Target ≤18.3%</div>
+            <span class="badge badge--low" style="margin-top:4px;">On Track</span>
+          </div>
+        </div>
+
+        <!-- Row 2: High-Risk Contact Rate — At Risk -->
+        <div class="kpi-row">
+          <div class="kpi-row__meta">
+            <div class="kpi-row__name">High-Risk Contact Rate (48h)</div>
+            <div class="kpi-row__type">Leading Indicator</div>
+            <div class="kpi-row__projection">Projection: <strong>~73%</strong> by year-end — will not reach 80% target without intervention.</div>
+          </div>
+          <div class="kpi-row__bar-col">
+            <div class="kpi-row__bar-wrap">
+              <div class="kpi-row__bar kpi-row__bar--amber" style="width:89%;">
+                <span class="kpi-row__bar-pct">89%</span>
+              </div>
+            </div>
+            <div class="kpi-row__footnote">
+              <span>Current: <strong>71%</strong></span>
+              <span>Target: <strong>≥80%</strong> within 48h of discharge</span>
+              <span>Gap: <strong style="color:var(--risk-high-text);">9 pts</strong></span>
+            </div>
+          </div>
+          <div class="kpi-row__aside">
+            <div class="kpi-row__current" style="color:var(--risk-medium-text);">71%</div>
+            <div class="kpi-row__target-text">Target ≥80%</div>
+            <span class="badge badge--medium" style="margin-top:4px;">At Risk</span>
+          </div>
+        </div>
+
+        <!-- Row 3: PCP Follow-Up within 7 Days — At Risk -->
+        <div class="kpi-row">
+          <div class="kpi-row__meta">
+            <div class="kpi-row__name">PCP Follow-Up within 7 Days</div>
+            <div class="kpi-row__type">Secondary Goal</div>
+            <div class="kpi-row__projection">Projection: <strong>~71%</strong> by year-end — 4 pts short of target.</div>
+          </div>
+          <div class="kpi-row__bar-col">
+            <div class="kpi-row__bar-wrap">
+              <div class="kpi-row__bar kpi-row__bar--amber" style="width:91%;">
+                <span class="kpi-row__bar-pct">91%</span>
+              </div>
+            </div>
+            <div class="kpi-row__footnote">
+              <span>Current: <strong>68%</strong></span>
+              <span>Target: <strong>≥75%</strong> of discharged patients</span>
+              <span>Gap: <strong style="color:var(--risk-high-text);">7 pts</strong></span>
+            </div>
+          </div>
+          <div class="kpi-row__aside">
+            <div class="kpi-row__current" style="color:var(--risk-medium-text);">68%</div>
+            <div class="kpi-row__target-text">Target ≥75%</div>
+            <span class="badge badge--medium" style="margin-top:4px;">At Risk</span>
+          </div>
+        </div>
+
+        <!-- Row 4: High-Risk Unassigned at 24h — At Risk -->
+        <div class="kpi-row">
+          <div class="kpi-row__meta">
+            <div class="kpi-row__name">High-Risk Unassigned at 24h</div>
+            <div class="kpi-row__type">Operational Target</div>
+            <div class="kpi-row__projection">Projection: <strong>1 patient</strong> by year-end — closing but unlikely to reach zero.</div>
+          </div>
+          <div class="kpi-row__bar-col">
+            <div class="kpi-row__bar-wrap">
+              <div class="kpi-row__bar kpi-row__bar--amber" style="width:75%;">
+                <span class="kpi-row__bar-pct">75%</span>
+              </div>
+            </div>
+            <div class="kpi-row__footnote">
+              <span>Current: <strong>2 patients</strong></span>
+              <span>Target: <strong>0</strong> unassigned at 24h</span>
+              <span>Gap closed from 8 at pilot launch → down 75%</span>
+            </div>
+          </div>
+          <div class="kpi-row__aside">
+            <div class="kpi-row__current" style="color:var(--risk-medium-text);">2</div>
+            <div class="kpi-row__target-text">Target 0 patients</div>
+            <span class="badge badge--medium" style="margin-top:4px;">At Risk</span>
+          </div>
+        </div>
+
+        <div class="alert alert--info" style="margin-top:var(--space-5); margin-bottom:0;">
+          <span class="alert__icon">💡</span>
+          <div>
+            <div class="alert__title">Contact rate is the highest-leverage gap heading into Q4</div>
+            <div class="alert__body">
+              Reaching the 80% high-risk contact target requires ~84 additional calls per month.
+              The unassigned-at-24h and PCP follow-up gaps share the same root cause: coordinator
+              capacity during peak discharge days (Monday, Friday). Addressing scheduling coverage
+              on those two days is estimated to close both gaps simultaneously.
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -634,6 +715,97 @@
         </div>
       </div>
 
+    </div>
+
+    <!-- ── WHAT CHANGED ARCHITECTURALLY ───────────────── -->
+    <div class="panel">
+      <div class="panel__head">
+        <div>
+          <div class="panel__title">What Actually Changed</div>
+          <div class="panel__sub">The program shifted from reactive work to an evidence-based transition bundle: early outreach, medication reconciliation, follow-up scheduling, and social barrier resolution.</div>
+        </div>
+      </div>
+      <div class="panel__body">
+        <div class="arch">
+
+          <!-- BEFORE -->
+          <div class="arch__panel arch__panel--before">
+            <div class="arch__panel-label">Before — Two Systems, No Bridge</div>
+
+            <div class="arch__silo arch__silo--epic">
+              <div class="arch__silo-name" style="color:var(--sys-epic);">Epic EHR</div>
+              <div class="arch__silo-desc">
+                Knows who was discharged, their diagnosis,
+                their medications, their prior admissions.
+                Does not know if anyone called them.
+              </div>
+            </div>
+
+            <div class="arch__break">✕ &nbsp;no shared view &nbsp;✕</div>
+
+            <div class="arch__silo arch__silo--sfdc">
+              <div class="arch__silo-name" style="color:var(--sys-sfdc);">Salesforce</div>
+              <div class="arch__silo-desc">
+                Knows who was called, who opted into SMS,
+                who has a coordinator assigned.
+                Does not know who is clinically at risk.
+              </div>
+            </div>
+
+            <div style="margin-top:var(--space-4);padding-top:var(--space-4);border-top:1px solid var(--border);font-size:11px;color:var(--gray-500);line-height:1.6;">
+              Coordinators reconciled the two by hand — reading an Epic discharge
+              report on one screen, searching Salesforce on another. Prioritization
+              was memory and guesswork.
+            </div>
+          </div>
+
+          <div class="arch__arrow">→</div>
+
+          <!-- AFTER -->
+          <div class="arch__panel arch__panel--after">
+            <div class="arch__panel-label">After — Joined at the Point of Decision</div>
+
+            <div class="arch__silo arch__silo--epic">
+              <div class="arch__silo-name" style="color:var(--sys-epic);">Epic EHR</div>
+              <div class="arch__silo-desc">Unchanged. Still clinical source of truth.</div>
+            </div>
+
+            <div style="text-align:center;color:var(--gray-300);font-size:15px;">↓ &nbsp; ↓</div>
+
+            <div class="arch__silo arch__silo--sfdc">
+              <div class="arch__silo-name" style="color:var(--sys-sfdc);">Salesforce Data Cloud</div>
+              <div class="arch__silo-desc">Unchanged. Still engagement source of truth.</div>
+            </div>
+
+            <div style="text-align:center;color:var(--ucm-maroon);font-size:15px;">↓</div>
+
+            <div class="arch__hub">
+              <div class="arch__hub-name">Care Coordination Layer</div>
+              <div class="arch__hub-desc">
+                Reads both · resolves conflicts · scores risk ·
+                routes to the right coordinator
+              </div>
+            </div>
+
+            <div style="margin-top:var(--space-4);padding-top:var(--space-4);border-top:1px solid #E8C8CE;font-size:11px;color:var(--ucm-maroon-dark);line-height:1.6;">
+              One prioritized list. Every value carries its origin. Conflicts between
+              the systems are resolved by explicit rule and shown to the coordinator —
+              not hidden.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="insight-card">
+          <div class="insight-card__label">Why this matters strategically</div>
+          <div class="insight-card__text">
+            We did not have to win the Epic-versus-Salesforce argument to make progress.
+            Both systems keep their territory. The orchestration layer sits above them and
+            is the only place that needs to understand both — which means this approach
+            is replicable for any other cross-system problem we face.
+          </div>
+        </div>
+      </div>
     </div>
 
   </main>
